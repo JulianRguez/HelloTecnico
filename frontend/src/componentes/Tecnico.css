@@ -1,0 +1,397 @@
+.tecnico {
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 16px;
+  background: #f5f7fb;
+  color: #172033;
+}
+
+/* ENCABEZADO */
+
+.tecnico-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.tecnico h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #172033;
+}
+
+.tecnico-actualizar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 38px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: #2563eb;
+  cursor: pointer;
+  box-shadow: none;
+  transition: 0.2s ease;
+}
+
+.tecnico-actualizar:hover {
+  background: #eff6ff;
+}
+
+.tecnico-actualizar:active {
+  transform: scale(0.95);
+}
+
+/* TÍTULOS */
+
+.tecnico h2 {
+  margin: 24px 0 10px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #172033;
+}
+
+/* TAREA ACTUAL */
+
+.tecnico-tarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #dbe2ea;
+  border-radius: 13px;
+  padding: 16px;
+  background: #ffffff;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
+}
+
+/* FILAS */
+
+.tecnico-fila {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 28px;
+  margin-bottom: 5px;
+  line-height: 1.25;
+  color: #334155;
+}
+
+.tecnico-fila:last-child {
+  margin-bottom: 0;
+}
+
+/* ICONOS DE LAS FILAS */
+
+.tecnico-fila svg {
+  flex-shrink: 0;
+  color: #64748b;
+}
+
+/* CLIENTE */
+
+.tecnico-cliente {
+  font-weight: 700;
+  font-size: 19px;
+  color: #172033;
+}
+
+.tecnico-cliente svg {
+  color: #2563eb;
+}
+
+/* DATOS COPIABLES */
+
+.tecnico-copiar {
+  width: 75px;
+  height: 35px;
+  box-sizing: border-box;
+  padding: 7px 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background-color: #e3f0ff;
+  color: #1769aa;
+  border-color: #bfd8f2;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.08);
+  transition: all 0.2s ease;
+}
+
+.tecnico-copiar:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.tecnico-copiar:active {
+  transform: scale(0.97);
+}
+
+/* DETALLE */
+
+.tecnico-detalle {
+  color: #475569;
+}
+
+/* DEBE */
+
+.tecnico-debe {
+  font-weight: 600;
+  color: #172033;
+}
+
+.tecnico-debe svg {
+  color: #2563eb;
+}
+
+/* BOTÓN FINALIZAR */
+
+.tecnico-finalizar {
+  width: 100%;
+  margin-top: 14px;
+  padding: 13px;
+  border: 0;
+  border-radius: 9px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.25);
+  transition: 0.2s ease;
+}
+
+.tecnico-finalizar:hover {
+  background: #1d4ed8;
+}
+
+.tecnico-finalizar:active {
+  transform: translateY(1px);
+}
+
+/* PRÓXIMOS PROCEDIMIENTOS */
+
+.tecnico-lista {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #dbe2ea;
+  border-radius: 11px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+/* CADA PROCEDIMIENTO */
+
+.tecnico-proxima {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+
+  padding: 9px 12px 9px 20px;
+
+  border-bottom: 1px solid #e5eaf0;
+  background: #ffffff;
+
+  font-size: 14px;
+  line-height: 1.15;
+  color: #334155;
+
+  transition: background 0.2s ease;
+}
+
+.tecnico-proxima:last-child {
+  border-bottom: 0;
+}
+
+.tecnico-proxima:hover {
+  background: #eff6ff;
+}
+
+/* PUNTO DE COLOR */
+
+.tecnico-proxima::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+/* GRUPO PRINCIPAL
+   Instalacion / Traslado / Reconexion */
+
+.tecnico-proxima.grupo-principal::before {
+  background: #f59e0b;
+  box-shadow: 0 0 0 3px #fef3c7;
+}
+
+/* GRUPO REVISION
+   Revision / Cambio equipo / Cambio cable */
+
+.tecnico-proxima.grupo-revision::before {
+  background: #ef4444;
+  box-shadow: 0 0 0 3px #fee2e2;
+}
+
+/* GRUPO OTROS
+   Cableado / Repetidor / Retiro / Viabilidad */
+
+.tecnico-proxima.grupo-otros::before {
+  background: #2563eb;
+  box-shadow: 0 0 0 3px #dbeafe;
+}
+
+/* NOMBRE DE CLIENTE EN LISTA */
+
+.tecnico-proxima strong {
+  color: #172033;
+  font-weight: 700;
+}
+
+/* SIN TAREAS */
+
+.tecnico-sin-tarea,
+.tecnico-sin-proximas {
+  padding: 18px;
+  text-align: center;
+  color: #64748b;
+  background: #ffffff;
+}
+
+/* MENSAJE FLOTANTE */
+
+.tecnico-mensaje {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+
+  padding: 10px 16px;
+
+  border: 1px solid #bfdbfe;
+  border-radius: 9px;
+
+  background: #eff6ff;
+  color: #1e40af;
+
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.15);
+}
+
+/* MODAL */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 16px;
+  box-sizing: border-box;
+
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.modal-contenido {
+  width: min(900px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+
+  box-sizing: border-box;
+  padding: 20px;
+
+  border-radius: 13px;
+
+  background: #ffffff;
+
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);
+}
+
+/* ESCRITORIO */
+
+@media (min-width: 701px) {
+  .tecnico {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+}
+
+/* MÓVIL */
+
+@media (max-width: 700px) {
+  .tecnico {
+    padding: 14px;
+  }
+
+  .tecnico h1 {
+    font-size: 23px;
+  }
+
+  .tecnico-tarea {
+    padding: 15px;
+    border-radius: 12px;
+  }
+
+  .tecnico-fila {
+    gap: 16px;
+    margin-bottom: 5px;
+    min-height: 27px;
+  }
+
+  .tecnico-cliente {
+    font-size: 18px;
+  }
+
+  .tecnico-proxima {
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 6px;
+    padding: 9px 10px 9px 20px;
+    font-size: 13px;
+  }
+
+  .tecnico-finalizar {
+    padding: 14px;
+    font-size: 16px;
+  }
+}
+.tecnico h1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #172033;
+}
+.tecnico-dato-copiar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 6px;
+}
+
+.tecnico-dato-copiar > span {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+}
+.tecnico-dato-copiar .tecnico-copiar {
+  margin-left: auto;
+}

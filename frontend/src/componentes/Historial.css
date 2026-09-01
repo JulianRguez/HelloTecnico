@@ -1,0 +1,41 @@
+.historial {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.historial h1 {
+  margin: 0 0 20px;
+  color: #16866d;
+}
+
+.historial-lista {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #b8e8dc;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.historial-registro {
+  padding: 12px 14px;
+  border-bottom: 1px solid #eaecf0;
+  color: #16866d;
+
+  line-height: 1.5;
+  white-space: normal;
+}
+
+.historial-registro:last-child {
+  border-bottom: none;
+}
+
+.historial-vacio {
+  padding: 20px;
+  color: #667085;
+  text-align: center;
+}
+.historial-cerrar {
+  margin-top: 16px;
+  color: #16866d;
+  border-color: #b8e8dc;
+}
