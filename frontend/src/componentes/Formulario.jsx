@@ -44,7 +44,7 @@ function convertirFechaLocal(fecha) {
   const horas = String(d.getHours()).padStart(2, "0");
   const minutos = String(d.getMinutes()).padStart(2, "0");
 
-  return `${año}-${mes}-${dia}T${horas}:${minutos}`;
+  return `${dia}/${mes}/${año} ${horas}:${minutos}`;
 }
 
 function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
@@ -123,16 +123,52 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
   const cambiarCampo = (e) => {
     const { name, value } = e.target;
 
+    if (name === "solicitud" || name === "vence") {
+      const valorFormateado = formatearEntradaFecha(value);
+
+      setFormulario((actual) => ({
+        ...actual,
+        [name]: valorFormateado,
+      }));
+
+      return;
+    }
+
     setFormulario((actual) => ({
       ...actual,
       [name]: value,
     }));
   };
 
+  function convertirFechaParaBackend(valor) {
+    const fecha = validarFechaFormulario(valor);
+
+    if (!fecha) {
+      return null;
+    }
+
+    const { dia, mes, año, horas, minutos } = fecha;
+
+    return new Date(año, mes - 1, dia, horas, minutos).toISOString();
+  }
+
   const guardar = async (e) => {
     e.preventDefault();
 
     setError("");
+
+    const solicitudValida = validarFechaFormulario(formulario.solicitud);
+    const venceValida = validarFechaFormulario(formulario.vence);
+
+    if (!solicitudValida) {
+      setError("La fecha de Solicitud no es válida");
+      return;
+    }
+
+    if (!venceValida) {
+      setError("La fecha de Vence no es válida");
+      return;
+    }
 
     // Comprobar cliente existente solamente al crear
     if (!editar) {
@@ -175,12 +211,8 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
         ip2: formulario.ip2 || null,
         instalacion: formulario.instalacion,
         plan: formulario.plan,
-        solicitud: formulario.solicitud
-          ? new Date(formulario.solicitud).toISOString()
-          : undefined,
-        vence: formulario.vence
-          ? new Date(formulario.vence).toISOString()
-          : undefined,
+        solicitud: convertirFechaParaBackend(formulario.solicitud),
+        vence: convertirFechaParaBackend(formulario.vence),
         debe: formulario.debe,
         valor: Number(formulario.valor) || 0,
         detalle: formulario.detalle,
@@ -224,6 +256,97 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
     } finally {
       setGuardando(false);
     }
+  };
+  function formatearEntradaFecha(valor) {
+    const numeros = valor.replace(/\D/g, "").slice(0, 12);
+
+    let resultado = "";
+
+    if (numeros.length > 0) {
+      resultado += numeros.slice(0, 2);
+    }
+
+    if (numeros.length >= 3) {
+      resultado += "/" + numeros.slice(2, 4);
+    }
+
+    if (numeros.length >= 5) {
+      resultado += "/" + numeros.slice(4, 8);
+    }
+
+    if (numeros.length >= 9) {
+      resultado += " " + numeros.slice(8, 10);
+    }
+
+    if (numeros.length >= 11) {
+      resultado += ":" + numeros.slice(10, 12);
+    }
+
+    return resultado;
+  }
+
+  function validarFechaFormulario(valor) {
+    const coincidencia = valor.match(
+      /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})$/,
+    );
+
+    if (!coincidencia) {
+      return null;
+    }
+
+    const dia = Number(coincidencia[1]);
+    const mes = Number(coincidencia[2]);
+    const año = Number(coincidencia[3]);
+    const horas = Number(coincidencia[4]);
+    const minutos = Number(coincidencia[5]);
+
+    if (año !== 2026 && año !== 2027) {
+      return null;
+    }
+
+    if (mes < 1 || mes > 12) {
+      return null;
+    }
+
+    if (horas < 0 || horas > 23) {
+      return null;
+    }
+
+    if (minutos < 0 || minutos > 59) {
+      return null;
+    }
+
+    const diasDelMes = new Date(año, mes, 0).getDate();
+
+    if (dia < 1 || dia > diasDelMes) {
+      return null;
+    }
+
+    return {
+      dia,
+      mes,
+      año,
+      horas,
+      minutos,
+    };
+  }
+
+  const validarCampoFecha = (e) => {
+    const { name, value } = e.target;
+
+    if (name !== "solicitud" && name !== "vence") {
+      return;
+    }
+
+    if (!validarFechaFormulario(value)) {
+      setError(
+        `${name === "solicitud" ? "Solicitud" : "Vence"}: fecha no válida`,
+      );
+
+      return;
+    }
+
+    setError("");
   };
 
   return (
@@ -422,10 +545,14 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
         <div className="campo">
           <label>Solicitud</label>
           <input
-            type="datetime-local"
+            type="text"
             name="solicitud"
             value={formulario.solicitud}
             onChange={cambiarCampo}
+            onBlur={validarCampoFecha}
+            placeholder="DD/MM/AAAA HH:MM"
+            inputMode="numeric"
+            maxLength={16}
             required
             disabled={editar}
           />
@@ -434,10 +561,14 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
         <div className="campo">
           <label>Vence</label>
           <input
-            type="datetime-local"
+            type="text"
             name="vence"
             value={formulario.vence}
             onChange={cambiarCampo}
+            onBlur={validarCampoFecha}
+            placeholder="DD/MM/AAAA HH:MM"
+            inputMode="numeric"
+            maxLength={16}
             required
             disabled={editar}
           />

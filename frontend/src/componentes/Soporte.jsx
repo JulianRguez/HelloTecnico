@@ -73,7 +73,7 @@ function Soporte() {
   const [tecnicos, setTecnicos] = useState([]);
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState("");
-
+  const [venceEditando, setVenceEditando] = useState({});
   const [busqueda, setBusqueda] = useState("");
 
   const [estadosSeleccionados, setEstadosSeleccionados] = useState({
@@ -294,14 +294,30 @@ function Soporte() {
   };
 
   const cambiarVence = async (tarea, nuevaFecha) => {
+    const fechaValidada = validarVence(nuevaFecha);
+
+    if (!fechaValidada) {
+      return;
+    }
+
     try {
+      const { dia, mes, año, horas, minutos } = fechaValidada;
+
+      const fechaISO = new Date(
+        año,
+        mes - 1,
+        dia,
+        horas,
+        minutos,
+      ).toISOString();
+
       const respuesta = await fetch(`${API_URL}/api/tareas/${tarea._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          vence: nuevaFecha,
+          vence: fechaISO,
         }),
       });
 
@@ -318,6 +334,136 @@ function Soporte() {
       console.error(error);
       setMensaje("No se pudo cambiar la fecha");
     }
+  };
+  const cambiarTextoVence = (tarea, valor) => {
+    const valorFormateado = formatearEntradaVence(valor);
+
+    setVenceEditando((actuales) => ({
+      ...actuales,
+      [tarea._id]: valorFormateado,
+    }));
+  };
+
+  const terminarEdicionVence = async (tarea) => {
+    const valor = venceEditando[tarea._id];
+
+    if (valor === undefined) {
+      return;
+    }
+
+    const fechaValidada = validarVence(valor);
+
+    if (!fechaValidada) {
+      setVenceEditando((actuales) => {
+        const copia = { ...actuales };
+        delete copia[tarea._id];
+        return copia;
+      });
+
+      setMensaje("Fecha no válida");
+
+      setTimeout(() => {
+        setMensaje("");
+      }, 2000);
+
+      return;
+    }
+
+    await cambiarVence(tarea, valor);
+
+    setVenceEditando((actuales) => {
+      const copia = { ...actuales };
+      delete copia[tarea._id];
+      return copia;
+    });
+  };
+  const formatearVence = (fecha) => {
+    if (!fecha) return "";
+
+    const fechaObj = new Date(fecha);
+
+    const dia = String(fechaObj.getDate()).padStart(2, "0");
+    const mes = String(fechaObj.getMonth() + 1).padStart(2, "0");
+    const año = fechaObj.getFullYear();
+
+    const horas = String(fechaObj.getHours()).padStart(2, "0");
+    const minutos = String(fechaObj.getMinutes()).padStart(2, "0");
+
+    return `${dia}/${mes}/${año} ${horas}:${minutos}`;
+  };
+
+  const formatearEntradaVence = (valor) => {
+    const numeros = valor.replace(/\D/g, "").slice(0, 12);
+
+    let resultado = "";
+
+    if (numeros.length > 0) {
+      resultado += numeros.slice(0, 2);
+    }
+
+    if (numeros.length >= 3) {
+      resultado += "/" + numeros.slice(2, 4);
+    }
+
+    if (numeros.length >= 5) {
+      resultado += "/" + numeros.slice(4, 8);
+    }
+
+    if (numeros.length >= 9) {
+      resultado += " " + numeros.slice(8, 10);
+    }
+
+    if (numeros.length >= 11) {
+      resultado += ":" + numeros.slice(10, 12);
+    }
+
+    return resultado;
+  };
+
+  const validarVence = (valor) => {
+    const coincidencia = valor.match(
+      /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})$/,
+    );
+
+    if (!coincidencia) {
+      return null;
+    }
+
+    const dia = Number(coincidencia[1]);
+    const mes = Number(coincidencia[2]);
+    const año = Number(coincidencia[3]);
+    const horas = Number(coincidencia[4]);
+    const minutos = Number(coincidencia[5]);
+
+    if (año !== 2026 && año !== 2027) {
+      return null;
+    }
+
+    if (mes < 1 || mes > 12) {
+      return null;
+    }
+
+    if (horas < 0 || horas > 23) {
+      return null;
+    }
+
+    if (minutos < 0 || minutos > 59) {
+      return null;
+    }
+
+    const diasDelMes = new Date(año, mes, 0).getDate();
+
+    if (dia < 1 || dia > diasDelMes) {
+      return null;
+    }
+
+    return {
+      dia,
+      mes,
+      año,
+      horas,
+      minutos,
+    };
   };
 
   const copiar = async (texto) => {
@@ -527,21 +673,17 @@ function Soporte() {
                   <td>{formatearSoloFecha(tarea.solicitud)}</td>
                   <td>
                     <input
-                      type="datetime-local"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="DD/MM/AAAA HH:MM"
                       value={
-                        tarea.vence
-                          ? (() => {
-                              const fecha = new Date(tarea.vence);
-                              const offset = fecha.getTimezoneOffset();
-                              const fechaLocal = new Date(
-                                fecha.getTime() - offset * 60000,
-                              );
-
-                              return fechaLocal.toISOString().slice(0, 16);
-                            })()
-                          : ""
+                        venceEditando[tarea._id] !== undefined
+                          ? venceEditando[tarea._id]
+                          : formatearVence(tarea.vence)
                       }
-                      onChange={(e) => cambiarVence(tarea, e.target.value)}
+                      onChange={(e) => cambiarTextoVence(tarea, e.target.value)}
+                      onBlur={() => terminarEdicionVence(tarea)}
+                      maxLength={16}
                     />
                   </td>
 

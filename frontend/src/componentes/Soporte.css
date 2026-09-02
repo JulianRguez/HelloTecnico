@@ -417,3 +417,17 @@
 .boton-editar:hover {
   filter: brightness(0.96);
 }
+.tabla-tareas input[type="text"] {
+  width: 145px;
+  padding: 7px 9px;
+  border: 1px solid #dfe3e8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #172033;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.tabla-tareas input[type="text"]:focus {
+  border-color: #c8ced6;
+}
