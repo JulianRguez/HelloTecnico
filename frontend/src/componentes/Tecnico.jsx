@@ -151,8 +151,29 @@ function Tecnico() {
       {tareaSiguiente ? (
         <>
           <div className="tecnico-tarea">
-            <div className="tecnico-fila tecnico-cliente">
-              {tareaSiguiente.cliente}
+            <div className="tecnico-dato-copiar">
+              <div className="tecnico-fila tecnico-cliente">
+                {tareaSiguiente.cliente}
+              </div>
+
+              <button
+                type="button"
+                className="tecnico-copiar"
+                onClick={() =>
+                  copiar(
+                    tareaSiguiente.cliente +
+                      ", " +
+                      tareaSiguiente.direccion +
+                      ", " +
+                      tareaSiguiente.telefono +
+                      ", " +
+                      tareaSiguiente.accion +
+                      ".",
+                  )
+                }
+              >
+                Copiar
+              </button>
             </div>
 
             <div className="tecnico-fila">
