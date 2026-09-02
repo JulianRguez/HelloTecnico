@@ -115,7 +115,8 @@ ip2: {
 
     plan: {
       type: String,
-      required: true,
+  required: false,
+  default: "",
       trim: true
     },
 

@@ -317,7 +317,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
             onChange={cambiarCampo}
             required
             minLength={8}
-            maxLength={40}
+            maxLength={50}
           />
         </div>
 
@@ -365,7 +365,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
         </div>
 
         <div className="campo">
-          <label>IP</label>
+          <label>IP Router</label>
           <input
             type="text"
             name="ip"
@@ -377,7 +377,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
         </div>
 
         <div className="campo">
-          <label>IP 2</label>
+          <label>IP Antena</label>
           <input
             type="text"
             name="ip2"
@@ -414,9 +414,8 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
             name="plan"
             value={formulario.plan}
             onChange={cambiarCampo}
-            required
             minLength={5}
-            maxLength={25}
+            maxLength={30}
           />
         </div>
 
@@ -502,7 +501,6 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
             onChange={cambiarCampo}
             minLength={7}
             maxLength={80}
-            required
           />
         </div>
       </div>

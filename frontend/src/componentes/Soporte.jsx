@@ -373,6 +373,13 @@ function Soporte() {
     setTareaEditar(null);
     cargarTareas();
   };
+  const formatearSoloFecha = (fecha) => {
+    if (!fecha) return "";
+
+    return new Date(fecha).toLocaleDateString("es-CO", {
+      dateStyle: "short",
+    });
+  };
 
   return (
     <main className="soporte">
@@ -430,15 +437,15 @@ function Soporte() {
               <th>Acción</th>
               <th>Técnico</th>
               <th>Zona</th>
+              <th>Solicitud</th>
+              <th>Vence</th>
               <th>Dirección</th>
               <th>Teléfono</th>
               <th>Teléfono 2</th>
-              <th>IP</th>
-              <th>IP2</th>
+              <th>IP Router</th>
+              <th>IP Antena</th>
               <th>Instalación</th>
               <th>Plan</th>
-              <th>Solicitud</th>
-              <th>Vence</th>
               <th>Debe</th>
               <th>Valor</th>
               <th>Detalle</th>
@@ -517,6 +524,27 @@ function Soporte() {
 
                   <td>{tarea.zona}</td>
 
+                  <td>{formatearSoloFecha(tarea.solicitud)}</td>
+                  <td>
+                    <input
+                      type="datetime-local"
+                      value={
+                        tarea.vence
+                          ? (() => {
+                              const fecha = new Date(tarea.vence);
+                              const offset = fecha.getTimezoneOffset();
+                              const fechaLocal = new Date(
+                                fecha.getTime() - offset * 60000,
+                              );
+
+                              return fechaLocal.toISOString().slice(0, 16);
+                            })()
+                          : ""
+                      }
+                      onChange={(e) => cambiarVence(tarea, e.target.value)}
+                    />
+                  </td>
+
                   <td>{tarea.direccion}</td>
 
                   <td>
@@ -580,28 +608,6 @@ function Soporte() {
                   </td>
 
                   <td>{tarea.plan}</td>
-
-                  <td>{formatearFecha(tarea.solicitud)}</td>
-
-                  <td>
-                    <input
-                      type="datetime-local"
-                      value={
-                        tarea.vence
-                          ? (() => {
-                              const fecha = new Date(tarea.vence);
-                              const offset = fecha.getTimezoneOffset();
-                              const fechaLocal = new Date(
-                                fecha.getTime() - offset * 60000,
-                              );
-
-                              return fechaLocal.toISOString().slice(0, 16);
-                            })()
-                          : ""
-                      }
-                      onChange={(e) => cambiarVence(tarea, e.target.value)}
-                    />
-                  </td>
 
                   <td>
                     <select
