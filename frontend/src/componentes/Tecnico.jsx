@@ -285,13 +285,18 @@ function Tecnico() {
               className={`tecnico-proxima ${obtenerClaseGrupo(tarea.accion)}`}
               key={tarea._id}
             >
-              <strong>{tarea.cliente?.split(" ").slice(0, 2).join(" ")}</strong>
+              <strong>
+                {tarea.cliente?.split(" ").slice(0, 2).join(" ") +
+                  " (" +
+                  tarea.instalacion +
+                  ")"}
+              </strong>
 
               <span>{tarea.zona}</span>
 
               <span className="tecnico-accion">
                 <span className="tecnico-punto"></span>
-                {tarea.accion?.split(" ")[0]}
+                {tarea.accion}
               </span>
             </div>
           ))
