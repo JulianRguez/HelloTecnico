@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
+import { History, Pencil } from "lucide-react";
 import Formulario from "./Formulario";
 import Historial from "./Historial";
 import "./Soporte.css";
@@ -526,6 +527,29 @@ function Soporte() {
       dateStyle: "short",
     });
   };
+  const obtenerPosicionTecnico = (tarea) => {
+    if (!tarea.tecnico) return "";
+
+    const tecnicoId =
+      typeof tarea.tecnico === "object" ? tarea.tecnico._id : tarea.tecnico;
+
+    const tareasDelTecnico = tareasFiltradas
+      .filter((item) => {
+        if (!item.tecnico) return false;
+
+        const itemTecnicoId =
+          typeof item.tecnico === "object" ? item.tecnico._id : item.tecnico;
+
+        return itemTecnicoId === tecnicoId;
+      })
+      .sort((a, b) => new Date(a.vence) - new Date(b.vence));
+
+    const posicion = tareasDelTecnico.findIndex(
+      (item) => item._id === tarea._id,
+    );
+
+    return posicion === -1 ? "" : posicion + 1;
+  };
 
   return (
     <main className="soporte">
@@ -581,6 +605,7 @@ function Soporte() {
               <th>DOC</th>
               <th>Estado</th>
               <th>Acción</th>
+              <th className="columna-posicion"></th>
               <th>Técnico</th>
               <th>Zona</th>
               <th>Solicitud</th>
@@ -595,20 +620,41 @@ function Soporte() {
               <th>Debe</th>
               <th>Valor</th>
               <th>Detalle</th>
-              <th>Historial</th>
-              <th>Editar</th>
             </tr>
           </thead>
 
           <tbody>
-            {tareasFiltradas.map((tarea) => {
+            {tareasFiltradas.map((tarea, index) => {
               const telefonos = String(tarea.telefono || "")
                 .split(",")
                 .filter(Boolean);
 
               return (
                 <tr key={tarea._id}>
-                  <td>{tarea.cliente}</td>
+                  <td className="cliente-celda">
+                    <button
+                      type="button"
+                      className="boton-icono boton-historial-icono"
+                      onClick={() => abrirHistorial(tarea)}
+                      title="Ver historial"
+                      aria-label={`Ver historial de ${tarea.cliente}`}
+                    >
+                      <History size={16} />
+                    </button>
+
+                    <button
+                      type="button"
+                      className="boton-icono boton-editar-icono"
+                      onClick={() => abrirEditar(tarea)}
+                      title="Editar tarea"
+                      aria-label={`Editar ${tarea.cliente}`}
+                    >
+                      <Pencil size={16} />
+                    </button>
+
+                    <span>{tarea.cliente}</span>
+                  </td>
+
                   <td>{tarea.doc || ""}</td>
 
                   <td>
@@ -648,7 +694,9 @@ function Soporte() {
                       ))}
                     </select>
                   </td>
-
+                  <td className="columnaNum">
+                    {tarea.tecnico ? obtenerPosicionTecnico(tarea) : ""}
+                  </td>
                   <td>
                     <select
                       className={`boton-tecnico ${
@@ -767,26 +815,6 @@ function Soporte() {
                   <td>{tarea.valor}</td>
 
                   <td>{tarea.detalle}</td>
-
-                  <td>
-                    <button
-                      type="button"
-                      className="boton-historial"
-                      onClick={() => abrirHistorial(tarea)}
-                    >
-                      Historial
-                    </button>
-                  </td>
-
-                  <td>
-                    <button
-                      type="button"
-                      className="boton-editar"
-                      onClick={() => abrirEditar(tarea)}
-                    >
-                      Editar
-                    </button>
-                  </td>
                 </tr>
               );
             })}
@@ -819,8 +847,14 @@ function Soporte() {
       )}
 
       {modalHistorial && (
-        <div className="modal">
-          <div className="modal-contenido">
+        <div
+          className="modal"
+          onClick={() => {
+            setModalHistorial(false);
+            setTareaHistorial(null);
+          }}
+        >
+          <div className="modal-contenido" onClick={(e) => e.stopPropagation()}>
             <Historial
               tarea={tareaHistorial}
               onCerrar={() => {
