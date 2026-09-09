@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Search } from "lucide-react";
 import "./Formulario.css";
 const API_URL = import.meta.env.VITE_API_URL || "";
 
@@ -48,7 +49,10 @@ function convertirFechaLocal(fecha) {
 }
 
 function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
-  const editar = Boolean(tarea);
+  const [tareaEncontrada, setTareaEncontrada] = useState(null);
+
+  const tareaActiva = tareaEncontrada || tarea;
+  const editar = Boolean(tareaActiva);
 
   const [formulario, setFormulario] = useState({
     doc: "",
@@ -73,7 +77,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
 
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
-
+  const [buscandoCliente, setBuscandoCliente] = useState(false);
   useEffect(() => {
     if (tarea) {
       setFormulario({
@@ -138,6 +142,121 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
       ...actual,
       [name]: value,
     }));
+  };
+
+  const buscarCliente = async () => {
+    if (buscandoCliente) return;
+
+    setError("");
+
+    const nombre = formulario.cliente;
+
+    if (nombre.length < 7 || !nombre.includes(" ")) {
+      setError("El formato de nombre y apellidos no es correcto");
+      return;
+    }
+
+    setBuscandoCliente(true);
+
+    try {
+      // --------------------------------------------------
+      // 1. Buscar primero en MongoDB
+      // --------------------------------------------------
+      const respuestaMongo = await fetch(
+        `${API_URL}/api/tareas/cliente/${encodeURIComponent(nombre)}`,
+      );
+
+      if (respuestaMongo.ok) {
+        const tareaEncontradaMongo = await respuestaMongo.json();
+
+        setTareaEncontrada(tareaEncontradaMongo);
+
+        setFormulario({
+          doc: tareaEncontradaMongo.doc ?? "",
+          cliente: tareaEncontradaMongo.cliente ?? "",
+          estado: tareaEncontradaMongo.estado ?? "Pendiente",
+          accion: tareaEncontradaMongo.accion ?? "",
+          direccion: tareaEncontradaMongo.direccion ?? "",
+          zona: tareaEncontradaMongo.zona ?? "",
+          telefono: tareaEncontradaMongo.telefono ?? "",
+          telefono2: tareaEncontradaMongo.telefono2 ?? "",
+          ip: tareaEncontradaMongo.ip ?? "",
+          ip2: tareaEncontradaMongo.ip2 ?? "",
+          instalacion: tareaEncontradaMongo.instalacion ?? "",
+          plan: tareaEncontradaMongo.plan ?? "",
+          solicitud: convertirFechaLocal(tareaEncontradaMongo.solicitud),
+          vence: convertirFechaLocal(tareaEncontradaMongo.vence),
+          debe: tareaEncontradaMongo.debe ?? false,
+          valor: tareaEncontradaMongo.valor ?? 0,
+          detalle: tareaEncontradaMongo.detalle ?? "",
+          tecnico:
+            tareaEncontradaMongo.tecnico?._id ??
+            tareaEncontradaMongo.tecnico ??
+            "",
+        });
+
+        return;
+      }
+
+      // Si Mongo devuelve algo diferente de 404, hubo otro problema
+      if (respuestaMongo.status !== 404) {
+        setError("No se pudo buscar el cliente en MongoDB");
+        return;
+      }
+
+      // --------------------------------------------------
+      // 2. No existe en MongoDB → buscar en Google Sheets
+      // --------------------------------------------------
+      setTareaEncontrada(null);
+
+      const respuestaExcel = await fetch(
+        `${API_URL}/api/tareas/cliente-excel/${encodeURIComponent(nombre)}`,
+      );
+
+      if (respuestaExcel.ok) {
+        const datosExcel = await respuestaExcel.json();
+
+        setFormulario({
+          doc: "",
+          cliente: nombre,
+          estado: "Pendiente",
+          accion: "",
+          direccion: datosExcel.direccion ?? "",
+          zona: "",
+          telefono: datosExcel.telefono ?? "",
+          telefono2: "",
+          ip: datosExcel.ip ?? "",
+          ip2: datosExcel.ip2 ?? "",
+          instalacion: "",
+          plan: datosExcel.plan ?? "",
+          solicitud: "",
+          vence: "",
+          debe: false,
+          valor: 0,
+          detalle: "",
+          tecnico: "",
+        });
+
+        return;
+      }
+
+      // --------------------------------------------------
+      // 3. No existe ni en Mongo ni en Google Sheets
+      // --------------------------------------------------
+      if (respuestaExcel.status === 404) {
+        setError(
+          "Ese nombre no existe o está mal escrito, la coincidencia debe ser exacta",
+        );
+        return;
+      }
+
+      setError("No se pudo buscar el cliente en Google Sheets");
+    } catch (error) {
+      console.error("Error buscando cliente:", error);
+      setError("No se pudo realizar la búsqueda del cliente");
+    } finally {
+      setBuscandoCliente(false);
+    }
   };
 
   function convertirFechaParaBackend(valor) {
@@ -382,18 +501,34 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
           />
         </div>
 
-        <div className="campo">
+        <div className="campo campo-cliente">
           <label>Cliente</label>
-          <input
-            type="text"
-            name="cliente"
-            value={formulario.cliente}
-            onChange={cambiarCampo}
-            required
-            readOnly={editar}
-            minLength={8}
-            maxLength={40}
-          />
+
+          <div className="cliente-busqueda">
+            <input
+              type="text"
+              name="cliente"
+              value={formulario.cliente}
+              onChange={cambiarCampo}
+              required
+              readOnly={editar}
+              minLength={8}
+              maxLength={40}
+            />
+
+            <button
+              type="button"
+              className="boton-buscar-cliente"
+              onClick={buscarCliente}
+              disabled={buscandoCliente}
+              title={buscandoCliente ? "Buscando..." : "Buscar cliente"}
+              aria-label={
+                buscandoCliente ? "Buscando cliente" : "Buscar cliente"
+              }
+            >
+              <Search size={18} />
+            </button>
+          </div>
         </div>
 
         <div className="campo">
