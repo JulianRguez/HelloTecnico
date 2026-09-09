@@ -4,6 +4,58 @@ import mongoose from "mongoose";
 import Tarea from "../models/tarea.model.js";
 import Usuario from "../models/usuario.model.js";
 
+function parseCSV(csv) {
+  const filas = [];
+  let fila = [];
+  let valor = "";
+  let dentroComillas = false;
+
+  for (let i = 0; i < csv.length; i++) {
+    const caracter = csv[i];
+    const siguiente = csv[i + 1];
+
+    if (caracter === '"') {
+      if (dentroComillas && siguiente === '"') {
+        valor += '"';
+        i++;
+      } else {
+        dentroComillas = !dentroComillas;
+      }
+    } else if (caracter === "," && !dentroComillas) {
+      fila.push(valor);
+      valor = "";
+    } else if (
+      (caracter === "\n" || caracter === "\r") &&
+      !dentroComillas
+    ) {
+      if (caracter === "\r" && siguiente === "\n") {
+        i++;
+      }
+
+      fila.push(valor);
+      valor = "";
+
+      if (fila.some((celda) => celda !== "")) {
+        filas.push(fila);
+      }
+
+      fila = [];
+    } else {
+      valor += caracter;
+    }
+  }
+
+  if (valor !== "" || fila.length > 0) {
+    fila.push(valor);
+
+    if (fila.some((celda) => celda !== "")) {
+      filas.push(fila);
+    }
+  }
+
+  return filas;
+}
+
 const router = Router();
 
 /*
@@ -460,9 +512,62 @@ router.get("/cliente/:nombre", async (req, res) => {
 });
 
 /*
+  BUSCAR TAREA POR CLIENTE EN GOOGLE SHEETS
+  GET /api/tareas/cliente-excel/:nombre
+*/
+
+router.get("/cliente-excel/:nombre", async (req, res) => {
+  try {
+    const { nombre } = req.params;
+
+    const url =
+      "https://docs.google.com/spreadsheets/d/1_TuFeRtd0JJ0MduVBIxxzdCxbSOYrP_t/gviz/tq?tqx=out:csv&sheet=V2";
+
+    const respuesta = await fetch(url);
+
+    if (!respuesta.ok) {
+      throw new Error(
+        `Google Sheets respondió con estado ${respuesta.status}`,
+      );
+    }
+
+    const csv = await respuesta.text();
+
+    const filas = parseCSV(csv);
+
+    const filaEncontrada = filas.find((fila) => fila[1] === nombre);
+
+    if (!filaEncontrada) {
+      return res.status(404).json({
+        mensaje: "No existe ese cliente en Google Sheets",
+      });
+    }
+
+    res.json({
+      encontrado: true,
+      cliente: filaEncontrada[1] ?? "",
+      direccion: filaEncontrada[33] ?? "",
+      telefono: filaEncontrada[21] ?? "",
+      ip: filaEncontrada[2] ?? "",
+      ip2: filaEncontrada[3] ?? "",
+      plan: filaEncontrada[30] ?? "",
+    });
+  } catch (error) {
+    console.error("Error consultando Google Sheets:", error);
+
+    res.status(500).json({
+      mensaje: "Error consultando Google Sheets",
+      error: error.message,
+    });
+  }
+});
+
+/*
   BUSCAR TAREA POR _id
   GET /api/tareas/:id
 */
+
+
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
