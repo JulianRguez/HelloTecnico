@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import "./Formulario.css";
+import Grupo from "./Grupo";
 const API_URL = import.meta.env.VITE_API_URL || "";
 
 const ESTADOS = ["Pendiente", "Realizado", "Cancelado", "Pospuesto", "Cerrado"];
@@ -73,11 +74,24 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
     valor: 0,
     detalle: "",
     tecnico: "",
+    grupo: [],
   });
 
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
   const [buscandoCliente, setBuscandoCliente] = useState(false);
+  const [modalGrupo, setModalGrupo] = useState(false);
+
+  const textoGrupo = (formulario.grupo ?? [])
+    .map((cliente) => cliente.nombre?.split(" ")[0])
+    .filter(Boolean)
+    .join(", ");
+
+  const nombreValido =
+    formulario.cliente.length >= 7 && formulario.cliente.includes(" ");
+
+  const puedeAgregarRevision = nombreValido && formulario.accion === "Revision";
+
   useEffect(() => {
     if (tarea) {
       setFormulario({
@@ -99,6 +113,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
         valor: tarea.valor ?? 0,
         detalle: tarea.detalle ?? "",
         tecnico: tarea.tecnico?._id ?? tarea.tecnico ?? "",
+        grupo: tarea.grupo ?? [],
       });
     } else {
       setFormulario({
@@ -120,6 +135,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
         valor: 0,
         detalle: "",
         tecnico: "",
+        grupo: [],
       });
     }
   }, [tarea]);
@@ -193,6 +209,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
             tareaEncontradaMongo.tecnico?._id ??
             tareaEncontradaMongo.tecnico ??
             "",
+          grupo: tareaEncontradaMongo.grupo ?? [],
         });
 
         return;
@@ -235,6 +252,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
           valor: 0,
           detalle: "",
           tecnico: "",
+          grupo: [],
         });
 
         return;
@@ -336,10 +354,11 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
         valor: Number(formulario.valor) || 0,
         detalle: formulario.detalle,
         tecnico: formulario.tecnico || null,
+        grupo: formulario.grupo ?? [],
       };
 
       const url = editar
-        ? `${API_URL}/api/tareas/${tarea._id}`
+        ? `${API_URL}/api/tareas/${tareaActiva._id}`
         : `${API_URL}/api/tareas`;
 
       const respuesta = await fetch(url, {
@@ -469,308 +488,328 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
   };
 
   return (
-    <form className="formulario" onSubmit={guardar}>
-      <div className="formulario-header">
-        <h1 className="tittle">
-          {editar ? "Editar Procedimiento" : "Nuevo Procedimiento"}
-        </h1>
+    <>
+      <form className="formulario" onSubmit={guardar}>
+        <div className="formulario-header">
+          <h1 className="tittle">
+            {editar ? "Editar Procedimiento" : "Nuevo Procedimiento"}
+          </h1>
 
-        <div className="formulario-botones">
-          <button type="submit" disabled={guardando}>
-            {guardando ? "Guardando..." : editar ? "Guardar" : "Crear"}
-          </button>
+          <div className="formulario-botones">
+            <button type="submit" disabled={guardando}>
+              {guardando ? "Guardando..." : editar ? "Guardar" : "Crear"}
+            </button>
 
-          <button type="button" onClick={onCerrar} disabled={guardando}>
-            Salir
-          </button>
-        </div>
-      </div>
-
-      {error && <div className="formulario-error">{error}</div>}
-
-      <div className="formulario-grid">
-        <div className="campo">
-          <label>DOC</label>
-          <input
-            type="text"
-            name="doc"
-            value={formulario.doc}
-            onChange={cambiarCampo}
-            minLength={5}
-            maxLength={12}
-          />
-        </div>
-
-        <div className="campo campo-cliente">
-          <label>Cliente</label>
-
-          <div className="cliente-busqueda">
-            <input
-              type="text"
-              name="cliente"
-              value={formulario.cliente}
-              onChange={cambiarCampo}
-              required
-              readOnly={editar}
-              minLength={8}
-              maxLength={40}
-            />
-
-            <button
-              type="button"
-              className="boton-buscar-cliente"
-              onClick={buscarCliente}
-              disabled={buscandoCliente}
-              title={buscandoCliente ? "Buscando..." : "Buscar cliente"}
-              aria-label={
-                buscandoCliente ? "Buscando cliente" : "Buscar cliente"
-              }
-            >
-              <Search size={18} />
+            <button type="button" onClick={onCerrar} disabled={guardando}>
+              Salir
             </button>
           </div>
         </div>
 
-        <div className="campo">
-          <label>Estado</label>
-          <select
-            name="estado"
-            value={formulario.estado}
-            onChange={cambiarCampo}
-            disabled
-          >
-            {ESTADOS.map((estado) => (
-              <option key={estado} value={estado}>
-                {estado}
-              </option>
-            ))}
-          </select>
+        {error && <div className="formulario-error">{error}</div>}
+
+        <div className="formulario-grid">
+          <div className="campo">
+            <label>DOC</label>
+            <input
+              type="text"
+              name="doc"
+              value={formulario.doc}
+              onChange={cambiarCampo}
+              minLength={5}
+              maxLength={12}
+            />
+          </div>
+
+          <div className="campo campo-cliente">
+            <label>Cliente</label>
+
+            <div className="cliente-busqueda">
+              <input
+                type="text"
+                name="cliente"
+                value={formulario.cliente}
+                onChange={cambiarCampo}
+                required
+                readOnly={editar}
+                minLength={8}
+                maxLength={40}
+              />
+
+              <button
+                type="button"
+                className="boton-buscar-cliente"
+                onClick={buscarCliente}
+                disabled={buscandoCliente}
+                title={buscandoCliente ? "Buscando..." : "Buscar cliente"}
+                aria-label={
+                  buscandoCliente ? "Buscando cliente" : "Buscar cliente"
+                }
+              >
+                <Search size={18} />
+              </button>
+            </div>
+          </div>
+
+          <div className="campo">
+            <label>Otros clientes</label>
+            <button
+              type="button"
+              className="campo-grupo"
+              disabled={!puedeAgregarRevision}
+              onClick={() => setModalGrupo(true)}
+            >
+              {puedeAgregarRevision ? textoGrupo : "Función no disponible"}
+            </button>
+          </div>
+
+          <div className="campo">
+            <label>Acción</label>
+            <select
+              name="accion"
+              value={formulario.accion}
+              onChange={cambiarCampo}
+              required
+              disabled={editar}
+            >
+              <option value="">Seleccione...</option>
+
+              {ACCIONES.map((accion) => (
+                <option key={accion} value={accion}>
+                  {accion}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="campo campo-ancho">
+            <label>Dirección</label>
+            <input
+              type="text"
+              name="direccion"
+              value={formulario.direccion}
+              onChange={cambiarCampo}
+              required
+              minLength={8}
+              maxLength={50}
+            />
+          </div>
+
+          <div className="campo">
+            <label>Zona</label>
+            <select
+              name="zona"
+              value={formulario.zona}
+              onChange={cambiarCampo}
+              required
+            >
+              <option value="">Seleccione...</option>
+
+              {ZONAS.map((zona) => (
+                <option key={zona} value={zona}>
+                  {zona}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="campo">
+            <label>Teléfono</label>
+            <input
+              type="text"
+              name="telefono"
+              value={formulario.telefono}
+              onChange={cambiarCampo}
+              minLength={7}
+              maxLength={15}
+              required
+            />
+          </div>
+
+          <div className="campo">
+            <label>Teléfono 2</label>
+            <input
+              type="text"
+              name="telefono2"
+              value={formulario.telefono2}
+              onChange={cambiarCampo}
+              minLength={7}
+              maxLength={15}
+            />
+          </div>
+
+          <div className="campo">
+            <label>IP Router</label>
+            <input
+              type="text"
+              name="ip"
+              value={formulario.ip}
+              onChange={cambiarCampo}
+              pattern="^(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}$"
+              title="Ingrese una dirección IPv4 válida. Ejemplo: 192.168.1.10"
+            />
+          </div>
+
+          <div className="campo">
+            <label>IP Antena</label>
+            <input
+              type="text"
+              name="ip2"
+              value={formulario.ip2}
+              onChange={cambiarCampo}
+              pattern="^(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}$"
+              title="Ingrese una dirección IPv4 válida. Ejemplo: 192.168.1.10"
+            />
+          </div>
+
+          <div className="campo">
+            <label>Instalación</label>
+            <select
+              name="instalacion"
+              value={formulario.instalacion}
+              onChange={cambiarCampo}
+              required
+              disabled={editar}
+            >
+              <option value="">Seleccione...</option>
+
+              {INSTALACIONES.map((instalacion) => (
+                <option key={instalacion} value={instalacion}>
+                  {instalacion}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="campo">
+            <label>Plan</label>
+            <input
+              type="text"
+              name="plan"
+              value={formulario.plan}
+              onChange={cambiarCampo}
+              minLength={5}
+              maxLength={30}
+            />
+          </div>
+
+          <div className="campo">
+            <label>Solicitud</label>
+            <input
+              type="text"
+              name="solicitud"
+              value={formulario.solicitud}
+              onChange={cambiarCampo}
+              onBlur={validarCampoFecha}
+              placeholder="DD/MM/AAAA HH:MM"
+              inputMode="numeric"
+              maxLength={16}
+              required
+              disabled={editar}
+            />
+          </div>
+
+          <div className="campo">
+            <label>Vence</label>
+            <input
+              type="text"
+              name="vence"
+              value={formulario.vence}
+              onChange={cambiarCampo}
+              onBlur={validarCampoFecha}
+              placeholder="DD/MM/AAAA HH:MM"
+              inputMode="numeric"
+              maxLength={16}
+              required
+              disabled={editar}
+            />
+          </div>
+
+          <div className="campo">
+            <label>Debe</label>
+            <select
+              name="debe"
+              value={formulario.debe ? "Si" : "No"}
+              onChange={(e) =>
+                setFormulario((actual) => ({
+                  ...actual,
+                  debe: e.target.value === "Si",
+                }))
+              }
+              disabled={editar}
+            >
+              <option value="No">No</option>
+              <option value="Si">Sí</option>
+            </select>
+          </div>
+
+          <div className="campo">
+            <label>Valor</label>
+            <input
+              type="number"
+              name="valor"
+              value={formulario.valor}
+              onChange={cambiarCampo}
+              min="0"
+              max="1000000"
+            />
+          </div>
+
+          <div className="campo">
+            <label>Técnico</label>
+
+            <select
+              name="tecnico"
+              value={formulario.tecnico}
+              onChange={cambiarCampo}
+              disabled={editar}
+            >
+              <option value="">Sin asignar</option>
+
+              {tecnicos.map((tecnico) => (
+                <option key={tecnico._id} value={tecnico._id}>
+                  {tecnico.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="campo campo-ancho">
+            <label>Detalle</label>
+            <input
+              type="text"
+              name="detalle"
+              value={formulario.detalle}
+              onChange={cambiarCampo}
+              minLength={7}
+              maxLength={80}
+            />
+          </div>
         </div>
+      </form>
 
-        <div className="campo">
-          <label>Acción</label>
-          <select
-            name="accion"
-            value={formulario.accion}
-            onChange={cambiarCampo}
-            required
-            disabled={editar}
-          >
-            <option value="">Seleccione...</option>
+      {modalGrupo && (
+        <div className="modal-grupo">
+          <div className="modal-grupo-contenido">
+            <Grupo
+              grupo={formulario.grupo}
+              onGuardarGrupo={(nuevoGrupo) => {
+                setFormulario((anterior) => ({
+                  ...anterior,
+                  grupo: nuevoGrupo,
+                }));
 
-            {ACCIONES.map((accion) => (
-              <option key={accion} value={accion}>
-                {accion}
-              </option>
-            ))}
-          </select>
+                setModalGrupo(false);
+              }}
+            />
+
+            <button type="button" onClick={() => setModalGrupo(false)}>
+              Cerrar
+            </button>
+          </div>
         </div>
-
-        <div className="campo campo-ancho">
-          <label>Dirección</label>
-          <input
-            type="text"
-            name="direccion"
-            value={formulario.direccion}
-            onChange={cambiarCampo}
-            required
-            minLength={8}
-            maxLength={50}
-          />
-        </div>
-
-        <div className="campo">
-          <label>Zona</label>
-          <select
-            name="zona"
-            value={formulario.zona}
-            onChange={cambiarCampo}
-            required
-          >
-            <option value="">Seleccione...</option>
-
-            {ZONAS.map((zona) => (
-              <option key={zona} value={zona}>
-                {zona}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="campo">
-          <label>Teléfono</label>
-          <input
-            type="text"
-            name="telefono"
-            value={formulario.telefono}
-            onChange={cambiarCampo}
-            minLength={7}
-            maxLength={15}
-            required
-          />
-        </div>
-
-        <div className="campo">
-          <label>Teléfono 2</label>
-          <input
-            type="text"
-            name="telefono2"
-            value={formulario.telefono2}
-            onChange={cambiarCampo}
-            minLength={7}
-            maxLength={15}
-          />
-        </div>
-
-        <div className="campo">
-          <label>IP Router</label>
-          <input
-            type="text"
-            name="ip"
-            value={formulario.ip}
-            onChange={cambiarCampo}
-            pattern="^(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}$"
-            title="Ingrese una dirección IPv4 válida. Ejemplo: 192.168.1.10"
-          />
-        </div>
-
-        <div className="campo">
-          <label>IP Antena</label>
-          <input
-            type="text"
-            name="ip2"
-            value={formulario.ip2}
-            onChange={cambiarCampo}
-            pattern="^(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}$"
-            title="Ingrese una dirección IPv4 válida. Ejemplo: 192.168.1.10"
-          />
-        </div>
-
-        <div className="campo">
-          <label>Instalación</label>
-          <select
-            name="instalacion"
-            value={formulario.instalacion}
-            onChange={cambiarCampo}
-            required
-            disabled={editar}
-          >
-            <option value="">Seleccione...</option>
-
-            {INSTALACIONES.map((instalacion) => (
-              <option key={instalacion} value={instalacion}>
-                {instalacion}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="campo">
-          <label>Plan</label>
-          <input
-            type="text"
-            name="plan"
-            value={formulario.plan}
-            onChange={cambiarCampo}
-            minLength={5}
-            maxLength={30}
-          />
-        </div>
-
-        <div className="campo">
-          <label>Solicitud</label>
-          <input
-            type="text"
-            name="solicitud"
-            value={formulario.solicitud}
-            onChange={cambiarCampo}
-            onBlur={validarCampoFecha}
-            placeholder="DD/MM/AAAA HH:MM"
-            inputMode="numeric"
-            maxLength={16}
-            required
-            disabled={editar}
-          />
-        </div>
-
-        <div className="campo">
-          <label>Vence</label>
-          <input
-            type="text"
-            name="vence"
-            value={formulario.vence}
-            onChange={cambiarCampo}
-            onBlur={validarCampoFecha}
-            placeholder="DD/MM/AAAA HH:MM"
-            inputMode="numeric"
-            maxLength={16}
-            required
-            disabled={editar}
-          />
-        </div>
-
-        <div className="campo">
-          <label>Debe</label>
-          <select
-            name="debe"
-            value={formulario.debe ? "Si" : "No"}
-            onChange={(e) =>
-              setFormulario((actual) => ({
-                ...actual,
-                debe: e.target.value === "Si",
-              }))
-            }
-            disabled={editar}
-          >
-            <option value="No">No</option>
-            <option value="Si">Sí</option>
-          </select>
-        </div>
-
-        <div className="campo">
-          <label>Valor</label>
-          <input
-            type="number"
-            name="valor"
-            value={formulario.valor}
-            onChange={cambiarCampo}
-            min="0"
-            max="1000000"
-          />
-        </div>
-
-        <div className="campo">
-          <label>Técnico</label>
-
-          <select
-            name="tecnico"
-            value={formulario.tecnico}
-            onChange={cambiarCampo}
-            disabled={editar}
-          >
-            <option value="">Sin asignar</option>
-
-            {tecnicos.map((tecnico) => (
-              <option key={tecnico._id} value={tecnico._id}>
-                {tecnico.nombre}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="campo campo-ancho">
-          <label>Detalle</label>
-          <input
-            type="text"
-            name="detalle"
-            value={formulario.detalle}
-            onChange={cambiarCampo}
-            minLength={7}
-            maxLength={80}
-          />
-        </div>
-      </div>
-    </form>
+      )}
+    </>
   );
 }
 

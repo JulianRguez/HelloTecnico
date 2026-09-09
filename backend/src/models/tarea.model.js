@@ -151,6 +151,26 @@ ip2: {
       default: []
     },
 
+grupo: {
+  type: [
+    {
+      nombre: {
+        type: String,
+        trim: true
+      },
+      telefono: {
+        type: String,
+        trim: true
+      },
+      ip: {
+        type: String,
+        trim: true
+      }
+    }
+  ],
+  default: []
+},
+
     tecnico: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Usuario",

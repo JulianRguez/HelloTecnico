@@ -356,6 +356,7 @@
 
   .tecnico-cliente {
     font-size: 18px;
+    margin-bottom: 28px;
   }
 
   .tecnico-proxima {
@@ -394,4 +395,33 @@
 }
 .tecnico-dato-copiar .tecnico-copiar {
   margin-left: auto;
+}
+.tecnico-cliente-grupo {
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.tecnico-grupo-nombre {
+  width: 100%;
+  margin-bottom: 2px;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tecnico-grupo-botones {
+  display: flex;
+  width: 100%;
+  gap: 6px;
+}
+
+.tecnico-grupo-botones .tecnico-copiar {
+  width: 50%;
+  flex: 0 0 calc(50% - 3px);
+  box-sizing: border-box;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }

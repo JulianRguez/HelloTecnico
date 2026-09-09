@@ -127,7 +127,10 @@ function Tecnico() {
 
     return "grupo-otros";
   };
-
+  const esRevisionConGrupo =
+    tareaSiguiente?.accion === "Revision" &&
+    Array.isArray(tareaSiguiente?.grupo) &&
+    tareaSiguiente.grupo.length > 0;
   return (
     <div className="tecnico">
       <div className="tecnico-encabezado">
@@ -151,138 +154,212 @@ function Tecnico() {
       {tareaSiguiente ? (
         <>
           <div className="tecnico-tarea">
-            <div className="tecnico-dato-copiar">
-              <div className="tecnico-fila tecnico-cliente">
-                {tareaSiguiente.cliente}
-              </div>
+            {esRevisionConGrupo ? (
+              <>
+                {/* TÍTULO DE LA REVISIÓN */}
+                <div className="tecnico-fila tecnico-cliente">
+                  {tareaSiguiente.accion}, {tareaSiguiente.zona},{" "}
+                  {tareaSiguiente.direccion}
+                </div>
 
-              <button
-                type="button"
-                className="tecnico-copiar"
-                onClick={() =>
-                  copiar(
-                    tareaSiguiente.cliente +
-                      ", " +
-                      tareaSiguiente.direccion +
-                      ", " +
-                      tareaSiguiente.telefono +
-                      ", " +
-                      tareaSiguiente.accion +
-                      ".",
-                  )
-                }
-              >
-                Copiar
-              </button>
-            </div>
+                {/* CLIENTE PRINCIPAL */}
+                <div className="tecnico-cliente-grupo">
+                  <div className="tecnico-grupo-nombre">
+                    {tareaSiguiente.cliente}
+                  </div>
 
-            <div className="tecnico-fila">
-              <Wrench size={17} />
-              <span>{tareaSiguiente.accion}</span>
-              <span>{tareaSiguiente.instalacion}</span>
-            </div>
+                  <div className="tecnico-grupo-botones">
+                    {tareaSiguiente.ip && (
+                      <button
+                        type="button"
+                        className="tecnico-copiar"
+                        onClick={() => copiar(tareaSiguiente.ip)}
+                      >
+                        {tareaSiguiente.ip}
+                      </button>
+                    )}
 
-            <div className="tecnico-fila">
-              <MapPin size={17} />
-              <span>{tareaSiguiente.zona}</span>
-              <span>{tareaSiguiente.direccion}</span>
-            </div>
+                    {tareaSiguiente.telefono && (
+                      <button
+                        type="button"
+                        className="tecnico-copiar"
+                        onClick={() => copiar(tareaSiguiente.telefono)}
+                      >
+                        {tareaSiguiente.telefono}
+                      </button>
+                    )}
+                  </div>
+                </div>
 
-            {tareaSiguiente.telefono && (
-              <div className="tecnico-fila">
-                <Phone size={17} />
+                {/* CLIENTES DEL GRUPO */}
+                {tareaSiguiente.grupo.map((cliente, indice) => (
+                  <div
+                    className="tecnico-cliente-grupo"
+                    key={cliente._id || indice}
+                  >
+                    <div className="tecnico-grupo-nombre">{cliente.nombre}</div>
 
+                    <div className="tecnico-grupo-botones">
+                      {cliente.ip && (
+                        <button
+                          type="button"
+                          className="tecnico-copiar"
+                          onClick={() => copiar(cliente.ip)}
+                        >
+                          {cliente.ip}
+                        </button>
+                      )}
+
+                      {cliente.telefono && (
+                        <button
+                          type="button"
+                          className="tecnico-copiar"
+                          onClick={() => copiar(cliente.telefono)}
+                        >
+                          {cliente.telefono}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </>
+            ) : (
+              <>
+                {/* VISTA NORMAL */}
                 <div className="tecnico-dato-copiar">
-                  <span>
-                    <strong>Telefono 1:</strong> {tareaSiguiente.telefono}
-                  </span>
+                  <div className="tecnico-fila tecnico-cliente">
+                    {tareaSiguiente.cliente}
+                  </div>
 
                   <button
                     type="button"
                     className="tecnico-copiar"
-                    onClick={() => copiar(tareaSiguiente.telefono)}
+                    onClick={() =>
+                      copiar(
+                        tareaSiguiente.cliente +
+                          ", " +
+                          tareaSiguiente.direccion +
+                          ", " +
+                          tareaSiguiente.telefono +
+                          ", " +
+                          tareaSiguiente.accion +
+                          ".",
+                      )
+                    }
                   >
                     Copiar
                   </button>
                 </div>
-              </div>
-            )}
 
-            {tareaSiguiente.telefono2 && (
-              <div className="tecnico-fila">
-                <Phone size={17} />
+                <div className="tecnico-fila">
+                  <Wrench size={17} />
+                  <span>{tareaSiguiente.accion}</span>
+                  <span>{tareaSiguiente.instalacion}</span>
+                </div>
 
-                <div className="tecnico-dato-copiar">
+                <div className="tecnico-fila">
+                  <MapPin size={17} />
+                  <span>{tareaSiguiente.zona}</span>
+                  <span>{tareaSiguiente.direccion}</span>
+                </div>
+
+                {tareaSiguiente.telefono && (
+                  <div className="tecnico-fila">
+                    <Phone size={17} />
+
+                    <div className="tecnico-dato-copiar">
+                      <span>
+                        <strong>Telefono 1:</strong> {tareaSiguiente.telefono}
+                      </span>
+
+                      <button
+                        type="button"
+                        className="tecnico-copiar"
+                        onClick={() => copiar(tareaSiguiente.telefono)}
+                      >
+                        Copiar
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {tareaSiguiente.telefono2 && (
+                  <div className="tecnico-fila">
+                    <Phone size={17} />
+
+                    <div className="tecnico-dato-copiar">
+                      <span>
+                        <strong>Telefono 2:</strong> {tareaSiguiente.telefono2}
+                      </span>
+
+                      <button
+                        type="button"
+                        className="tecnico-copiar"
+                        onClick={() => copiar(tareaSiguiente.telefono2)}
+                      >
+                        Copiar
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {tareaSiguiente.ip && (
+                  <div className="tecnico-fila">
+                    <Wifi size={17} />
+
+                    <div className="tecnico-dato-copiar">
+                      <span>
+                        <strong>IP Router:</strong> {tareaSiguiente.ip}
+                      </span>
+
+                      <button
+                        type="button"
+                        className="tecnico-copiar"
+                        onClick={() => copiar(tareaSiguiente.ip)}
+                      >
+                        Copiar
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {tareaSiguiente.ip2 && (
+                  <div className="tecnico-fila">
+                    <Wifi size={17} />
+
+                    <div className="tecnico-dato-copiar">
+                      <span>
+                        <strong>IP Antena:</strong> {tareaSiguiente.ip2}
+                      </span>
+
+                      <button
+                        type="button"
+                        className="tecnico-copiar"
+                        onClick={() => copiar(tareaSiguiente.ip2)}
+                      >
+                        Copiar
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {tareaSiguiente.detalle && (
+                  <div className="tecnico-fila tecnico-detalle">
+                    <FileText size={17} />
+                    <span>{tareaSiguiente.detalle}</span>
+                  </div>
+                )}
+
+                <div className="tecnico-fila tecnico-debe">
+                  <CircleDollarSign size={17} />
                   <span>
-                    <strong>Telefono 2:</strong> {tareaSiguiente.telefono2}
+                    {tareaSiguiente.debe
+                      ? `Debe: ${tareaSiguiente.valor}`
+                      : "No debe"}
                   </span>
-
-                  <button
-                    type="button"
-                    className="tecnico-copiar"
-                    onClick={() => copiar(tareaSiguiente.telefono2)}
-                  >
-                    Copiar
-                  </button>
                 </div>
-              </div>
+              </>
             )}
-
-            {tareaSiguiente.ip && (
-              <div className="tecnico-fila">
-                <Wifi size={17} />
-
-                <div className="tecnico-dato-copiar">
-                  <span>
-                    <strong>IP Router:</strong> {tareaSiguiente.ip}
-                  </span>
-
-                  <button
-                    type="button"
-                    className="tecnico-copiar"
-                    onClick={() => copiar(tareaSiguiente.ip)}
-                  >
-                    Copiar
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {tareaSiguiente.ip2 && (
-              <div className="tecnico-fila">
-                <Wifi size={17} />
-
-                <div className="tecnico-dato-copiar">
-                  <span>
-                    <strong>IP Antena:</strong> {tareaSiguiente.ip2}
-                  </span>
-
-                  <button
-                    type="button"
-                    className="tecnico-copiar"
-                    onClick={() => copiar(tareaSiguiente.ip2)}
-                  >
-                    Copiar
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {tareaSiguiente.detalle && (
-              <div className="tecnico-fila tecnico-detalle">
-                <FileText size={17} />
-                <span>{tareaSiguiente.detalle}</span>
-              </div>
-            )}
-
-            <div className="tecnico-fila tecnico-debe">
-              <CircleDollarSign size={17} />
-              <span>
-                {tareaSiguiente.debe
-                  ? `Debe: ${tareaSiguiente.valor}`
-                  : "No debe"}
-              </span>
-            </div>
           </div>
 
           <button
