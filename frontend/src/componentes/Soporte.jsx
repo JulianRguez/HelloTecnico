@@ -3,6 +3,7 @@ import { useNavigate, Navigate } from "react-router-dom";
 import { History, Pencil } from "lucide-react";
 import Formulario from "./Formulario";
 import Historial from "./Historial";
+import Grupo from "./Grupo";
 import "./Soporte.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
@@ -90,6 +91,8 @@ function Soporte() {
 
   const [modalHistorial, setModalHistorial] = useState(false);
   const [tareaHistorial, setTareaHistorial] = useState(null);
+  const [modalGrupo, setModalGrupo] = useState(false);
+  const [tareaGrupo, setTareaGrupo] = useState(null);
 
   if (!usuario || usuario.perfil !== "Soporte") {
     return <Navigate to="/" replace />;
@@ -515,6 +518,11 @@ function Soporte() {
     setModalHistorial(true);
   };
 
+  const abrirGrupo = (tarea) => {
+    setTareaGrupo(tarea);
+    setModalGrupo(true);
+  };
+
   const actualizarDespuesDeGuardar = () => {
     setModalFormulario(false);
     setTareaEditar(null);
@@ -549,6 +557,38 @@ function Soporte() {
     );
 
     return posicion === -1 ? "" : posicion + 1;
+  };
+
+  const guardarGrupo = async (nuevoGrupo) => {
+    if (!tareaGrupo) return;
+
+    try {
+      const respuesta = await fetch(`${API_URL}/api/tareas/${tareaGrupo._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          grupo: nuevoGrupo,
+        }),
+      });
+
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        throw new Error(datos.mensaje || "No se pudo actualizar el grupo");
+      }
+
+      setTareas((actuales) =>
+        actuales.map((item) => (item._id === tareaGrupo._id ? datos : item)),
+      );
+
+      setModalGrupo(false);
+      setTareaGrupo(null);
+    } catch (error) {
+      console.error(error);
+      setMensaje("No se pudo actualizar el grupo");
+    }
   };
 
   return (
@@ -605,17 +645,17 @@ function Soporte() {
               <th>DOC</th>
               <th>Estado</th>
               <th>Acción</th>
-              <th className="columna-posicion"></th>
+              <th className="columna-posicion">#</th>
               <th>Técnico</th>
               <th>Zona</th>
               <th>Solicitud</th>
               <th>Vence</th>
+              <th>Instalación</th>
               <th>Dirección</th>
               <th>Teléfono</th>
               <th>Teléfono 2</th>
               <th>IP Router</th>
               <th>IP Antena</th>
-              <th>Instalación</th>
               <th>Plan</th>
               <th>Debe</th>
               <th>Valor</th>
@@ -652,7 +692,18 @@ function Soporte() {
                       <Pencil size={16} />
                     </button>
 
-                    <span>{tarea.cliente}</span>
+                    {Array.isArray(tarea.grupo) && tarea.grupo.length > 0 ? (
+                      <button
+                        type="button"
+                        className="boton-cliente-grupo"
+                        onClick={() => abrirGrupo(tarea)}
+                        title="Editar otros clientes"
+                      >
+                        {tarea.cliente}
+                      </button>
+                    ) : (
+                      <span>{tarea.cliente}</span>
+                    )}
                   </td>
 
                   <td>{tarea.doc || ""}</td>
@@ -735,6 +786,22 @@ function Soporte() {
                     />
                   </td>
 
+                  <td>
+                    <select
+                      className="boton-instalacion"
+                      value={tarea.instalacion}
+                      onChange={(e) =>
+                        cambiarInstalacion(tarea, e.target.value)
+                      }
+                    >
+                      {INSTALACIONES.map((instalacion) => (
+                        <option key={instalacion} value={instalacion}>
+                          {instalacion}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+
                   <td>{tarea.direccion}</td>
 
                   <td>
@@ -779,22 +846,6 @@ function Soporte() {
                     >
                       {tarea.ip2 || ""}
                     </button>
-                  </td>
-
-                  <td>
-                    <select
-                      className="boton-instalacion"
-                      value={tarea.instalacion}
-                      onChange={(e) =>
-                        cambiarInstalacion(tarea, e.target.value)
-                      }
-                    >
-                      {INSTALACIONES.map((instalacion) => (
-                        <option key={instalacion} value={instalacion}>
-                          {instalacion}
-                        </option>
-                      ))}
-                    </select>
                   </td>
 
                   <td>{tarea.plan}</td>
@@ -861,6 +912,16 @@ function Soporte() {
                 setModalHistorial(false);
                 setTareaHistorial(null);
               }}
+            />
+          </div>
+        </div>
+      )}
+      {modalGrupo && (
+        <div className="modal">
+          <div className="modal-contenido">
+            <Grupo
+              grupo={tareaGrupo?.grupo ?? []}
+              onGuardarGrupo={guardarGrupo}
             />
           </div>
         </div>

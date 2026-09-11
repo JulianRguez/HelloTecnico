@@ -72,8 +72,8 @@ function Finalizar({ tarea, onCerrar, onFinalizado }) {
       return;
     }
 
-    if (notaLimpia.length < 10) {
-      setMensaje("La nota debe tener mínimo 10 caracteres");
+    if (notaLimpia.length < 20) {
+      setMensaje("La nota debe tener mínimo 20 caracteres");
       return;
     }
 
@@ -153,7 +153,7 @@ function Finalizar({ tarea, onCerrar, onFinalizado }) {
   const puedeTerminar =
     !guardando &&
     notaHabilitada &&
-    nota.trim().length >= 10 &&
+    nota.trim().length >= 20 &&
     nota.trim().length <= 70;
 
   return (

@@ -180,27 +180,6 @@
   min-width: 0;
 }
 
-.boton-buscar-cliente {
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #e4e7ec;
-  cursor: pointer;
-}
-
-.boton-buscar-cliente:hover {
-  background: #fbcfe8;
-}
-
-.boton-buscar-cliente:active {
-  transform: scale(0.97);
-}
-.boton-buscar-cliente:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .modal-grupo {
   position: fixed;
   inset: 0;

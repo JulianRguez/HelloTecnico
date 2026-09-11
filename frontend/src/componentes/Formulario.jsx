@@ -802,10 +802,6 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
                 setModalGrupo(false);
               }}
             />
-
-            <button type="button" onClick={() => setModalGrupo(false)}>
-              Cerrar
-            </button>
           </div>
         </div>
       )}

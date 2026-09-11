@@ -1,0 +1,388 @@
+.grupo {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.grupo h2 {
+  margin: 0 0 16px;
+  font-size: 19px;
+  font-weight: 700;
+  color: #172033;
+}
+
+/* ==================================================
+   FORMULARIO
+   ================================================== */
+
+.grupo-formulario {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.grupo-campo {
+  min-width: 0;
+}
+
+.grupo-campo label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.grupo-campo input {
+  width: 100%;
+  height: 38px;
+  box-sizing: border-box;
+  padding: 9px 11px;
+
+  border: 1px solid #bfd8f2;
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #172033;
+
+  font-family: inherit;
+  font-size: 14px;
+
+  outline: none;
+}
+
+.grupo-campo input:focus {
+  border-color: #2563eb;
+}
+
+/* ==================================================
+   LUPA - BUSCAR CLIENTE
+   ================================================== */
+
+.grupo-campo-busqueda {
+  display: flex;
+  width: 100%;
+}
+
+.grupo-campo-busqueda input {
+  min-width: 0;
+  border-radius: 8px 0 0 8px;
+}
+
+.boton-buscar-cliente {
+  width: 40px !important;
+  height: 38px !important;
+
+  padding: 0 !important;
+
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  border: none !important;
+
+  background: #ffffff !important;
+  color: #2563eb !important;
+
+  cursor: pointer;
+}
+
+.boton-buscar-cliente:hover 
+  background: #d9cffb !important;
+  color: #2563eb !important;
+}
+
+.boton-buscar-cliente:active {
+  transform: scale(0.97);
+}
+
+.boton-buscar-cliente:disabled {
+  color: #667085 !important;
+
+  opacity: 1 !important;
+  cursor: not-allowed;
+}
+
+/* ==================================================
+   AGREGAR
+   ================================================== */
+
+.grupo-agregar {
+  height: 38px !important;
+
+  padding: 0 16px !important;
+
+  border: 0 !important;
+  border-radius: 8px !important;
+
+  background: #2563eb !important;
+  color: #ffffff !important;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.grupo-agregar:hover {
+  background: #1d4ed8 !important;
+  color: #ffffff !important;
+}
+
+.grupo-agregar:active {
+  background: #1e40af !important;
+}
+
+.grupo-agregar:disabled {
+  background: #bfd8f2 !important;
+  color: #667085 !important;
+
+  cursor: not-allowed;
+}
+
+/* ==================================================
+   ERROR
+   ================================================== */
+
+.grupo-error {
+  margin-top: 10px;
+
+  color: #dc2626;
+  font-size: 13px;
+}
+
+/* ==================================================
+   LISTA
+   ================================================== */
+
+.grupo-lista {
+  width: 100%;
+
+  margin-top: 18px;
+
+  border: 1px solid #dbe2ea;
+  border-radius: 9px;
+
+  overflow: hidden;
+
+  background: #ffffff;
+}
+
+/* ==================================================
+   CADA REGISTRO
+   ================================================== */
+
+.grupo-registro {
+  display: grid;
+
+  grid-template-columns:
+    minmax(140px, 1fr)
+    minmax(90px, 130px)
+    minmax(110px, 150px)
+    32px;
+
+  align-items: center;
+
+  gap: 8px;
+
+  min-height: 44px;
+
+  padding: 6px 8px 6px 12px;
+
+  box-sizing: border-box;
+
+  border-bottom: 1px solid #e5eaf0;
+}
+
+.grupo-registro:last-child {
+  border-bottom: 0;
+}
+
+/* ==================================================
+   NOMBRE Y TELÉFONO
+   ================================================== */
+
+.grupo-nombre,
+.grupo-telefono {
+  min-width: 0;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  color: #172033;
+
+  font-size: 14px;
+}
+
+.grupo-nombre {
+  font-weight: 600;
+}
+
+.grupo-telefono {
+  color: #475569;
+}
+
+/* ==================================================
+   IP
+   ================================================== */
+
+.grupo-ip {
+  width: 100%;
+  min-width: 0;
+
+  height: 34px;
+
+  padding: 6px 10px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #bfd8f2;
+  border-radius: 8px;
+
+  background: #e3f0ff;
+  color: #1769aa;
+
+  cursor: pointer;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grupo-ip:hover {
+  background: #dbeafe;
+}
+
+/* ==================================================
+   ESPACIO CUANDO NO HAY IP
+   ================================================== */
+
+.grupo-sin-dato {
+  width: 100%;
+}
+
+/* ==================================================
+   ELIMINAR
+   ================================================== */
+
+.grupo-eliminar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 32px;
+  height: 32px;
+
+  padding: 0;
+
+  border: 0;
+
+  border-radius: 7px;
+
+  background: transparent !important;
+  color: #dc2626 !important;
+
+  cursor: pointer;
+}
+
+.grupo-eliminar:hover {
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+
+.grupo-eliminar:active {
+  background: #fecaca !important;
+}
+
+/* ==================================================
+   LISTA VACÍA
+   ================================================== */
+
+.grupo-vacio {
+  padding: 16px;
+
+  text-align: center;
+
+  color: #64748b;
+
+  font-size: 14px;
+}
+
+/* ==================================================
+   CONFIRMAR
+   ================================================== */
+
+.grupo-confirmar {
+  width: 100% !important;
+
+  margin-top: 16px;
+
+  padding: 11px !important;
+
+  border: 0 !important;
+  border-radius: 8px !important;
+
+  background: #4b7deb !important;
+  color: #ffffff !important;
+
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.grupo-confirmar:hover {
+  background: #1d4ed8 !important;
+  color: #ffffff !important;
+}
+
+.grupo-confirmar:active {
+  background: #1e40af !important;
+  color: #ffffff !important;
+}
+
+/* ==================================================
+   MÓVIL
+   ================================================== */
+
+@media (max-width: 700px) {
+  .grupo-formulario {
+    grid-template-columns: 1fr;
+  }
+
+  .grupo-agregar {
+    width: 100%;
+  }
+
+  .grupo-registro {
+    grid-template-columns:
+      minmax(100px, 1fr)
+      minmax(80px, 100px)
+      minmax(95px, 110px)
+      32px;
+
+    gap: 5px;
+
+    padding-left: 8px;
+  }
+
+  .grupo-nombre,
+  .grupo-telefono {
+    font-size: 13px;
+  }
+
+  .grupo-ip {
+    font-size: 12px;
+    padding: 6px;
+  }
+}

@@ -458,3 +458,12 @@
 .columnaNum {
   color: #797979;
 }
+.boton-cliente-grupo {
+  background-color: #e3f0ff;
+  color: #1769aa;
+  border-color: #bfd8f2;
+}
+
+.boton-cliente-grupo:hover {
+  background-color: #d5e8ff !important;
+}
