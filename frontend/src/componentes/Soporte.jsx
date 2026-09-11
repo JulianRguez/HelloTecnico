@@ -653,7 +653,6 @@ function Soporte() {
           <thead>
             <tr>
               <th>Cliente</th>
-              <th>DOC</th>
               <th>Estado</th>
               <th>Acción</th>
               <th className="columna-posicion">#</th>
@@ -671,6 +670,7 @@ function Soporte() {
               <th>Debe</th>
               <th>Valor</th>
               <th>Detalle</th>
+              <th>DOC</th>
             </tr>
           </thead>
 
@@ -716,8 +716,6 @@ function Soporte() {
                       <span>{tarea.cliente}</span>
                     )}
                   </td>
-
-                  <td>{tarea.doc || ""}</td>
 
                   <td>
                     <select
@@ -890,6 +888,8 @@ function Soporte() {
                   <td>{tarea.valor}</td>
 
                   <td>{tarea.detalle}</td>
+
+                  <td>{tarea.doc || ""}</td>
                 </tr>
               );
             })}

@@ -639,7 +639,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
               onChange={cambiarCampo}
               required
               minLength={8}
-              maxLength={50}
+              maxLength={32}
               disabled={editar && tieneGrupo}
             />
           </div>
