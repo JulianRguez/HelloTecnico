@@ -49,6 +49,18 @@ function convertirFechaLocal(fecha) {
   return `${dia}/${mes}/${año} ${horas}:${minutos}`;
 }
 
+function obtenerFechaHoraActual() {
+  const ahora = new Date();
+
+  const dia = String(ahora.getDate()).padStart(2, "0");
+  const mes = String(ahora.getMonth() + 1).padStart(2, "0");
+  const año = ahora.getFullYear();
+  const horas = String(ahora.getHours()).padStart(2, "0");
+  const minutos = String(ahora.getMinutes()).padStart(2, "0");
+
+  return `${dia}/${mes}/${año} ${horas}:${minutos}`;
+}
+
 function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
   const [tareaEncontrada, setTareaEncontrada] = useState(null);
 
@@ -91,6 +103,8 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
     formulario.cliente.length >= 7 && formulario.cliente.includes(" ");
 
   const puedeAgregarRevision = nombreValido && formulario.accion === "Revision";
+  const tieneGrupo =
+    Array.isArray(formulario.grupo) && formulario.grupo.length > 0;
 
   useEffect(() => {
     if (tarea) {
@@ -129,7 +143,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
         ip2: "",
         instalacion: "",
         plan: "",
-        solicitud: "",
+        solicitud: obtenerFechaHoraActual(),
         vence: "",
         debe: false,
         valor: 0,
@@ -246,7 +260,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
           ip2: datosExcel.ip2 ?? "",
           instalacion: "",
           plan: datosExcel.plan ?? "",
-          solicitud: "",
+          solicitud: obtenerFechaHoraActual(),
           vence: "",
           debe: false,
           valor: 0,
@@ -335,9 +349,37 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
     setGuardando(true);
 
     try {
+      let clienteGuardar = (formulario.cliente || "").toUpperCase();
+      let grupoGuardar = formulario.grupo ?? [];
+
+      const tieneGrupoGuardar =
+        Array.isArray(grupoGuardar) && grupoGuardar.length > 0;
+
+      const clienteGrupo =
+        `${formulario.accion}, ${formulario.zona}, ${formulario.direccion}`.toUpperCase();
+
+      if (tieneGrupoGuardar && formulario.cliente !== clienteGrupo) {
+        grupoGuardar = [
+          {
+            nombre: formulario.cliente,
+            telefono: formulario.telefono,
+            ip: formulario.ip,
+          },
+          ...grupoGuardar,
+        ];
+
+        clienteGuardar = clienteGrupo;
+      }
+
+      // Validación DOC obligatorio para nuevas Instalaciones
+      if (!editar && formulario.accion === "Instalacion" && !formulario.doc) {
+        setError("El DOC es obligatorio para una Instalación.");
+        return;
+      }
+
       const cuerpo = {
         doc: formulario.doc === "" ? undefined : Number(formulario.doc),
-        cliente: formulario.cliente,
+        cliente: clienteGuardar,
         estado: formulario.estado,
         accion: formulario.accion,
         direccion: formulario.direccion,
@@ -354,7 +396,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
         valor: Number(formulario.valor) || 0,
         detalle: formulario.detalle,
         tecnico: formulario.tecnico || null,
-        grupo: formulario.grupo ?? [],
+        grupo: grupoGuardar,
       };
 
       const url = editar
@@ -518,6 +560,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
               onChange={cambiarCampo}
               minLength={5}
               maxLength={12}
+              disabled={editar && tieneGrupo}
             />
           </div>
 
@@ -529,7 +572,12 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
                 type="text"
                 name="cliente"
                 value={formulario.cliente}
-                onChange={cambiarCampo}
+                onChange={(e) =>
+                  setFormulario({
+                    ...formulario,
+                    cliente: e.target.value.toUpperCase(),
+                  })
+                }
                 required
                 readOnly={editar}
                 minLength={8}
@@ -540,7 +588,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
                 type="button"
                 className="boton-buscar-cliente"
                 onClick={buscarCliente}
-                disabled={buscandoCliente}
+                disabled={editar || buscandoCliente}
                 title={buscandoCliente ? "Buscando..." : "Buscar cliente"}
                 aria-label={
                   buscandoCliente ? "Buscando cliente" : "Buscar cliente"
@@ -592,6 +640,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
               required
               minLength={8}
               maxLength={50}
+              disabled={editar && tieneGrupo}
             />
           </div>
 
@@ -602,6 +651,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
               value={formulario.zona}
               onChange={cambiarCampo}
               required
+              disabled={editar && tieneGrupo}
             >
               <option value="">Seleccione...</option>
 
@@ -623,6 +673,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
               minLength={7}
               maxLength={15}
               required
+              disabled={editar && tieneGrupo}
             />
           </div>
 
@@ -635,6 +686,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
               onChange={cambiarCampo}
               minLength={7}
               maxLength={15}
+              disabled={editar && tieneGrupo}
             />
           </div>
 
@@ -647,6 +699,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
               onChange={cambiarCampo}
               pattern="^(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}$"
               title="Ingrese una dirección IPv4 válida. Ejemplo: 192.168.1.10"
+              disabled={editar && tieneGrupo}
             />
           </div>
 
@@ -659,6 +712,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
               onChange={cambiarCampo}
               pattern="^(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}$"
               title="Ingrese una dirección IPv4 válida. Ejemplo: 192.168.1.10"
+              disabled={editar && tieneGrupo}
             />
           </div>
 
@@ -690,6 +744,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
               onChange={cambiarCampo}
               minLength={5}
               maxLength={30}
+              disabled={editar && tieneGrupo}
             />
           </div>
 
@@ -750,8 +805,17 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
               name="valor"
               value={formulario.valor}
               onChange={cambiarCampo}
+              onBlur={() => {
+                if (!editar) {
+                  setFormulario((actual) => ({
+                    ...actual,
+                    debe: true,
+                  }));
+                }
+              }}
               min="0"
               max="1000000"
+              disabled={editar && tieneGrupo}
             />
           </div>
 

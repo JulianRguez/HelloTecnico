@@ -535,6 +535,17 @@ function Soporte() {
       dateStyle: "short",
     });
   };
+  const venceHoyOAnterior = (fecha) => {
+    if (!fecha) return false;
+
+    const fechaVence = new Date(fecha);
+    const hoy = new Date();
+
+    fechaVence.setHours(0, 0, 0, 0);
+    hoy.setHours(0, 0, 0, 0);
+
+    return fechaVence <= hoy;
+  };
   const obtenerPosicionTecnico = (tarea) => {
     if (!tarea.tecnico) return "";
 
@@ -737,6 +748,9 @@ function Soporte() {
                       }`}
                       value={tarea.accion}
                       onChange={(e) => cambiarAccion(tarea, e.target.value)}
+                      disabled={
+                        Array.isArray(tarea.grupo) && tarea.grupo.length > 0
+                      }
                     >
                       {ACCIONES.map((accion) => (
                         <option key={accion} value={accion}>
@@ -775,6 +789,9 @@ function Soporte() {
                       type="text"
                       inputMode="numeric"
                       placeholder="DD/MM/AAAA HH:MM"
+                      className={
+                        venceHoyOAnterior(tarea.vence) ? "vence-vencido" : ""
+                      }
                       value={
                         venceEditando[tarea._id] !== undefined
                           ? venceEditando[tarea._id]
@@ -788,7 +805,11 @@ function Soporte() {
 
                   <td>
                     <select
-                      className="boton-instalacion"
+                      className={`boton-instalacion ${
+                        tarea.instalacion === "Fibra óptica"
+                          ? "instalacion-fibra"
+                          : ""
+                      }`}
                       value={tarea.instalacion}
                       onChange={(e) =>
                         cambiarInstalacion(tarea, e.target.value)
@@ -856,6 +877,9 @@ function Soporte() {
                       value={tarea.debe ? "Si" : "No"}
                       onChange={(e) =>
                         cambiarDebe(tarea, e.target.value === "Si")
+                      }
+                      disabled={
+                        Array.isArray(tarea.grupo) && tarea.grupo.length > 0
                       }
                     >
                       <option value="No">No</option>

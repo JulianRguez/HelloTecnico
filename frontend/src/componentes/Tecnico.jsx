@@ -158,37 +158,7 @@ function Tecnico() {
               <>
                 {/* TÍTULO DE LA REVISIÓN */}
                 <div className="tecnico-fila tecnico-cliente">
-                  {tareaSiguiente.accion}, {tareaSiguiente.zona},{" "}
-                  {tareaSiguiente.direccion}
-                </div>
-
-                {/* CLIENTE PRINCIPAL */}
-                <div className="tecnico-cliente-grupo">
-                  <div className="tecnico-grupo-nombre">
-                    {tareaSiguiente.cliente}
-                  </div>
-
-                  <div className="tecnico-grupo-botones">
-                    {tareaSiguiente.ip && (
-                      <button
-                        type="button"
-                        className="tecnico-copiar"
-                        onClick={() => copiar(tareaSiguiente.ip)}
-                      >
-                        {tareaSiguiente.ip}
-                      </button>
-                    )}
-
-                    {tareaSiguiente.telefono && (
-                      <button
-                        type="button"
-                        className="tecnico-copiar"
-                        onClick={() => copiar(tareaSiguiente.telefono)}
-                      >
-                        {tareaSiguiente.telefono}
-                      </button>
-                    )}
-                  </div>
+                  {tareaSiguiente.cliente}
                 </div>
 
                 {/* CLIENTES DEL GRUPO */}
@@ -197,29 +167,38 @@ function Tecnico() {
                     className="tecnico-cliente-grupo"
                     key={cliente._id || indice}
                   >
-                    <div className="tecnico-grupo-nombre">{cliente.nombre}</div>
+                    <span className="tecnico-grupo-nombre">
+                      {cliente.nombre}:
+                    </span>
 
-                    <div className="tecnico-grupo-botones">
-                      {cliente.ip && (
+                    {cliente.ip && (
+                      <>
+                        <span className="tecnico-grupo-etiqueta"> IP: </span>
                         <button
                           type="button"
-                          className="tecnico-copiar"
+                          className="tecnico-grupo-dato"
                           onClick={() => copiar(cliente.ip)}
                         >
                           {cliente.ip}
                         </button>
-                      )}
+                      </>
+                    )}
 
-                      {cliente.telefono && (
+                    {cliente.telefono && (
+                      <>
+                        <span className="tecnico-grupo-etiqueta">
+                          {" "}
+                          Telefono:{" "}
+                        </span>
                         <button
                           type="button"
-                          className="tecnico-copiar"
+                          className="tecnico-grupo-dato"
                           onClick={() => copiar(cliente.telefono)}
                         >
                           {cliente.telefono}
                         </button>
-                      )}
-                    </div>
+                      </>
+                    )}
                   </div>
                 ))}
               </>

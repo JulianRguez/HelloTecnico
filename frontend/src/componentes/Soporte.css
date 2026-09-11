@@ -467,3 +467,11 @@
 .boton-cliente-grupo:hover {
   background-color: #d5e8ff !important;
 }
+.instalacion-fibra {
+  color: #d97706 !important;
+  font-weight: 700 !important;
+}
+.vence-vencido {
+  color: #dc2626 !important;
+  font-weight: bold !important;
+}

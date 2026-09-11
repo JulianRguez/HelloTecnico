@@ -106,7 +106,7 @@ function Grupo({ grupo = [], onGuardarGrupo }) {
     }
 
     const nuevoCliente = {
-      nombre: nombre.trim(),
+      nombre: nombre.trim().toUpperCase(),
       telefono: telefono.trim(),
       ip: ip.trim(),
     };
@@ -160,7 +160,7 @@ function Grupo({ grupo = [], onGuardarGrupo }) {
             <input
               type="text"
               value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
+              onChange={(e) => setNombre(e.target.value.toUpperCase())}
               placeholder="Nombre y apellidos"
             />
 

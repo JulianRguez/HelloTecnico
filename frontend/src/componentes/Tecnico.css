@@ -398,30 +398,53 @@
 }
 .tecnico-cliente-grupo {
   width: 100%;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  box-sizing: border-box;
+  line-height: 1.45;
+  color: #334155;
+
+  background: #dbe9fc;
+  border: none;
+  border-radius: 9px;
+
+  overflow-wrap: anywhere;
 }
 
 .tecnico-grupo-nombre {
-  width: 100%;
-  margin-bottom: 2px;
-
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  font-weight: 700;
+  color: #172033;
 }
 
-.tecnico-grupo-botones {
-  display: flex;
-  width: 100%;
-  gap: 6px;
+.tecnico-grupo-etiqueta {
+  color: #334155;
+  font-weight: 500;
 }
 
-.tecnico-grupo-botones .tecnico-copiar {
-  width: 50%;
-  flex: 0 0 calc(50% - 3px);
-  box-sizing: border-box;
+.tecnico-grupo-dato {
+  display: inline;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #2563eb;
+  font-weight: 800;
+  font-size: inherit;
+  line-height: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: none;
+}
 
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.tecnico-grupo-dato:hover {
+  color: #1d4ed8;
+  background: transparent;
+  text-decoration: none;
+}
+
+.tecnico-grupo-dato:active {
+  transform: none;
 }
