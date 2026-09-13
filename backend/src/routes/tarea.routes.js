@@ -190,6 +190,45 @@ if (
 });
 
 /*
+  ELIMINAR TAREAS POR ESTADO
+  DELETE /api/tareas/estado/:estado
+*/
+router.delete("/estado/:estado", async (req, res) => {
+  try {
+    const { estado } = req.params;
+
+    const estadosValidos = [
+      "Pendiente",
+      "Realizado",
+      "Cancelado",
+      "Pospuesto",
+      "Cerrado",
+    ];
+
+    if (!estadosValidos.includes(estado)) {
+      return res.status(400).json({
+        mensaje: "Estado no válido",
+        estadosValidos,
+      });
+    }
+
+    const resultado = await Tarea.deleteMany({
+      estado,
+    });
+
+    res.json({
+      mensaje: `Se eliminaron las tareas con estado ${estado}`,
+      eliminadas: resultado.deletedCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "No se pudieron eliminar las tareas",
+      error: error.message,
+    });
+  }
+});
+
+/*
   ELIMINAR TAREA
   DELETE /api/tareas/:id
 */
@@ -222,6 +261,7 @@ router.delete("/:id", async (req, res) => {
     });
   }
 });
+
 
 /*
   OBTENER TODAS LAS TAREAS
