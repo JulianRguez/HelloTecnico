@@ -65,21 +65,21 @@ const tareaSchema = new mongoose.Schema(
     "Sucre",
     "Liborina"
   ]
-},
+    },
 
     telefono: {
   type: String,
   required: true,
   minlength: 7,
   maxlength: 15
-},
+    },
 
-telefono2: {
-  type: String,
-  required: false,
-  minlength: 7,
-  maxlength: 15
-},
+    telefono2: {
+      type: String,
+      required: false,
+      minlength: 7,
+      maxlength: 15
+    },
 
     ip: {
   type: String,
@@ -90,18 +90,18 @@ telefono2: {
     /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/,
     "La IP debe tener un formato IPv4 válido"
   ]
-},
+    },
 
-ip2: {
-  type: String,
-  required: false,
-  default: null,
-  trim: true,
-  match: [
-    /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/,
-    "La IP2 debe tener un formato IPv4 válido"
-  ]
-},
+    ip2: {
+      type: String,
+      required: false,
+      default: null,
+      trim: true,
+      match: [
+        /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/,
+        "La IP2 debe tener un formato IPv4 válido"
+      ]
+    },
 
     instalacion: {
       type: String,
@@ -151,31 +151,36 @@ ip2: {
       default: []
     },
 
-grupo: {
-  type: [
-    {
-      nombre: {
-        type: String,
-        trim: true
-      },
-      telefono: {
-        type: String,
-        trim: true
-      },
-      ip: {
-        type: String,
-        trim: true
-      }
-    }
-  ],
-  default: []
-},
+    grupo: {
+      type: [
+        {
+          nombre: {
+            type: String,
+            trim: true
+          },
+          telefono: {
+            type: String,
+            trim: true
+          },
+          ip: {
+            type: String,
+            trim: true
+          }
+        }
+      ],
+      default: []
+    },
 
     tecnico: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Usuario",
-      default: null
-    }
+      default: null,
+    },
+
+    ordenTecnico: {
+      type: Number,
+      default: null,
+    },
   },
   {
     timestamps: true

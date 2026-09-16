@@ -25,46 +25,98 @@ const ACCIONES = [
 
 const INSTALACIONES = ["Utp", "Fibra óptica", "Radio enlace"];
 
-const claseEstado = (estado) => {
-  switch (estado) {
-    case "Pendiente":
-      return "estado-pendiente";
+/* =========================================================
+   PALETAS POR ZONA
+   ========================================================= */
 
-    case "Realizado":
-      return "estado-realizado";
+const PALETAS_ZONA = {
+  Antioquia: ["#95b5e3", "#a8c2f1", "#bcd1fa", "#cfdef5", "#e3eef4"],
 
-    case "Cancelado":
-      return "estado-cancelado";
+  Paso: ["#e39595", "#f1a8a8", "#fabcbc", "#f5cfcf", "#f4e3e3"],
 
-    case "Pospuesto":
-      return "estado-pospuesto";
+  "San Nicolas": ["#b8c2be", "#c7cecb", "#d5dbd9", "#e3e7e5", "#f0f3f2"],
 
-    case "Cerrado":
-      return "estado-cerrado";
+  Filadelfia: ["#e3b095", "#f1c1a8", "#fad1bc", "#f5dfcf", "#f4ebe3"],
 
-    default:
-      return "";
-  }
+  Tunal: ["#95cfc3", "#a8d8ce", "#bce1da", "#cfeae5", "#e3f4f1"],
+
+  "San Jeronimo": ["#be95e3", "#cca8f1", "#dbbcfa", "#e3cff5", "#ede3f4"],
+
+  Piñones: ["#e3df95", "#f1eea8", "#faf9bc", "#f5f0cf", "#f4f2e3"],
+
+  Llanadas: ["#e3df95", "#f1eea8", "#faf9bc", "#f5f0cf", "#f4f2e3"],
+
+  "Quebrada Seca": ["#e3b095", "#f1c1a8", "#fad1bc", "#f5dfcf", "#f4ebe3"],
+
+  Sucre: ["#95cfc3", "#a8d8ce", "#bce1da", "#cfeae5", "#e3f4f1"],
+
+  Liborina: ["#be95e3", "#cca8f1", "#dbbcfa", "#e3cff5", "#ede3f4"],
 };
 
-const claseAccion = (accion) => {
-  if (["Revision", "Cambio equipo", "Cambio cable"].includes(accion)) {
-    return "accion-grupo-1";
+/*
+ * Si una tarea tiene una zona que no está configurada,
+ * se utiliza una paleta neutra para evitar errores.
+ */
+const PALETA_DEFAULT = ["#b8c2be", "#c7cecb", "#d5dbd9", "#e3e7e5", "#f0f3f2"];
+
+/* =========================================================
+   OBTENER PALETA DE UNA ZONA
+   ========================================================= */
+
+const obtenerPaletaZona = (zona) => {
+  return PALETAS_ZONA[zona] || PALETA_DEFAULT;
+};
+
+/* =========================================================
+   COLOR DEL ESTADO
+   5 estados = 5 tonos
+   ========================================================= */
+
+const obtenerColorEstado = (zona, estado) => {
+  const paleta = obtenerPaletaZona(zona);
+
+  const posicion = ESTADOS.indexOf(estado);
+
+  if (posicion === -1) {
+    return paleta[4];
   }
 
-  if (["Instalacion", "Traslado", "Reconexion"].includes(accion)) {
-    return "accion-grupo-2";
+  return paleta[posicion];
+};
+
+/* =========================================================
+   COLOR DE LA ACCIÓN
+   10 acciones = 5 tonos
+   Dos acciones por tono
+   ========================================================= */
+
+const obtenerColorAccion = (zona, accion) => {
+  const paleta = obtenerPaletaZona(zona);
+
+  const posicion = ACCIONES.indexOf(accion);
+
+  if (posicion === -1) {
+    return paleta[4];
   }
 
-  if (
-    ["Cableado interno", "Repetidor", "Retiro equipos", "Viabilidad"].includes(
-      accion,
-    )
-  ) {
-    return "accion-grupo-3";
-  }
+  const indiceColor = Math.floor(posicion / 2);
 
-  return "";
+  return paleta[indiceColor];
+};
+
+/* =========================================================
+   COLOR DEL CLIENTE
+   Tono 4 de la paleta
+   Texto negro
+   ========================================================= */
+
+const obtenerEstiloCliente = (zona) => {
+  const paleta = obtenerPaletaZona(zona);
+
+  return {
+    backgroundColor: paleta[3],
+    color: "#000000",
+  };
 };
 
 function Soporte() {
@@ -91,6 +143,7 @@ function Soporte() {
 
   const [modalHistorial, setModalHistorial] = useState(false);
   const [tareaHistorial, setTareaHistorial] = useState(null);
+
   const [modalGrupo, setModalGrupo] = useState(false);
   const [tareaGrupo, setTareaGrupo] = useState(null);
 
@@ -167,8 +220,6 @@ function Soporte() {
         },
         body: JSON.stringify({
           estado: nuevoEstado,
-
-          // Si deja de estar Pendiente, se desasigna el técnico
           tecnico:
             nuevoEstado === "Pendiente" ? tarea.tecnico?._id || null : null,
         }),
@@ -339,6 +390,7 @@ function Soporte() {
       setMensaje("No se pudo cambiar la fecha");
     }
   };
+
   const cambiarTextoVence = (tarea, valor) => {
     const valorFormateado = formatearEntradaVence(valor);
 
@@ -381,6 +433,7 @@ function Soporte() {
       return copia;
     });
   };
+
   const formatearVence = (fecha) => {
     if (!fecha) return "";
 
@@ -528,6 +581,7 @@ function Soporte() {
     setTareaEditar(null);
     cargarTareas();
   };
+
   const formatearSoloFecha = (fecha) => {
     if (!fecha) return "";
 
@@ -535,6 +589,7 @@ function Soporte() {
       dateStyle: "short",
     });
   };
+
   const venceHoyOAnterior = (fecha) => {
     if (!fecha) return false;
 
@@ -546,6 +601,7 @@ function Soporte() {
 
     return fechaVence <= hoy;
   };
+
   const obtenerPosicionTecnico = (tarea) => {
     if (!tarea.tecnico) return "";
 
@@ -675,14 +731,20 @@ function Soporte() {
           </thead>
 
           <tbody>
-            {tareasFiltradas.map((tarea, index) => {
+            {tareasFiltradas.map((tarea) => {
               const telefonos = String(tarea.telefono || "")
                 .split(",")
                 .filter(Boolean);
 
+              const colorEstado = obtenerColorEstado(tarea.zona, tarea.estado);
+
+              const colorAccion = obtenerColorAccion(tarea.zona, tarea.accion);
+
+              const estiloCliente = obtenerEstiloCliente(tarea.zona);
+
               return (
                 <tr key={tarea._id}>
-                  <td className="cliente-celda">
+                  <td className="cliente-celda" style={estiloCliente}>
                     <button
                       type="button"
                       className="boton-icono boton-historial-icono"
@@ -719,7 +781,11 @@ function Soporte() {
 
                   <td>
                     <select
-                      className={`boton-estado estado-${tarea.estado.toLowerCase()}`}
+                      className="boton-estado"
+                      style={{
+                        backgroundColor: colorEstado,
+                        color: "#000000",
+                      }}
                       value={tarea.estado}
                       onChange={(e) => cambiarEstado(tarea, e.target.value)}
                     >
@@ -733,17 +799,11 @@ function Soporte() {
 
                   <td>
                     <select
-                      className={`boton-accion ${
-                        ["Revision", "Cambio equipo", "Cambio cable"].includes(
-                          tarea.accion,
-                        )
-                          ? "accion-grupo-1"
-                          : ["Instalacion", "Traslado", "Reconexion"].includes(
-                                tarea.accion,
-                              )
-                            ? "accion-grupo-2"
-                            : "accion-grupo-3"
-                      }`}
+                      className="boton-accion"
+                      style={{
+                        backgroundColor: colorAccion,
+                        color: "#000000",
+                      }}
                       value={tarea.accion}
                       onChange={(e) => cambiarAccion(tarea, e.target.value)}
                       disabled={
@@ -757,9 +817,11 @@ function Soporte() {
                       ))}
                     </select>
                   </td>
+
                   <td className="columnaNum">
                     {tarea.tecnico ? obtenerPosicionTecnico(tarea) : ""}
                   </td>
+
                   <td>
                     <select
                       className={`boton-tecnico ${
@@ -782,6 +844,7 @@ function Soporte() {
                   <td>{tarea.zona}</td>
 
                   <td>{formatearSoloFecha(tarea.solicitud)}</td>
+
                   <td>
                     <input
                       type="text"
@@ -896,7 +959,7 @@ function Soporte() {
 
             {tareasFiltradas.length === 0 && (
               <tr>
-                <td colSpan="18" className="sin-resultados">
+                <td colSpan="19" className="sin-resultados">
                   No hay tareas para mostrar
                 </td>
               </tr>
@@ -940,6 +1003,7 @@ function Soporte() {
           </div>
         </div>
       )}
+
       {modalGrupo && (
         <div className="modal">
           <div className="modal-contenido">
