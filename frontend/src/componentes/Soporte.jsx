@@ -148,6 +148,7 @@ function Soporte() {
 
   const [modalGrupo, setModalGrupo] = useState(false);
   const [tareaGrupo, setTareaGrupo] = useState(null);
+  const [clienteTooltip, setClienteTooltip] = useState(null);
 
   if (!usuario || usuario.perfil !== "Soporte") {
     return <Navigate to="/" replace />;
@@ -709,6 +710,75 @@ function Soporte() {
     }
   };
 
+  const obtenerTextoHistorial = (registro) => {
+    if (registro === null || registro === undefined) {
+      return "";
+    }
+
+    if (typeof registro === "string") {
+      return registro;
+    }
+
+    if (typeof registro === "object") {
+      // Si el registro es un objeto, intentamos mostrar
+      // su contenido de una manera legible.
+      return (
+        registro.detalle ||
+        registro.texto ||
+        registro.descripcion ||
+        JSON.stringify(registro)
+      );
+    }
+
+    return String(registro);
+  };
+
+  const mostrarTooltipCliente = (tarea, evento) => {
+    const detalle =
+      tarea.detalle !== null &&
+      tarea.detalle !== undefined &&
+      String(tarea.detalle).trim() !== ""
+        ? String(tarea.detalle).trim()
+        : "";
+
+    const historial = Array.isArray(tarea.historial)
+      ? tarea.historial
+          .map(obtenerTextoHistorial)
+          .map((texto) => texto.trim())
+          .filter(Boolean)
+      : [];
+
+    // Si no hay nada que mostrar, no mostramos el globo.
+    if (!detalle && historial.length === 0) {
+      setClienteTooltip(null);
+      return;
+    }
+
+    setClienteTooltip({
+      tareaId: tarea._id,
+      detalle,
+      historial,
+      x: evento.clientX + 14,
+      y: evento.clientY + 14,
+    });
+  };
+
+  const moverTooltipCliente = (evento) => {
+    setClienteTooltip((actual) => {
+      if (!actual) return null;
+
+      return {
+        ...actual,
+        x: evento.clientX + 14,
+        y: evento.clientY + 14,
+      };
+    });
+  };
+
+  const ocultarTooltipCliente = () => {
+    setClienteTooltip(null);
+  };
+
   return (
     <main className="soporte">
       <header className="soporte-header">
@@ -819,14 +889,24 @@ function Soporte() {
                     {Array.isArray(tarea.grupo) && tarea.grupo.length > 0 ? (
                       <button
                         type="button"
-                        className="boton-cliente-grupo"
+                        className="boton-cliente-grupo cliente-con-tooltip"
                         onClick={() => abrirGrupo(tarea)}
+                        onMouseEnter={(e) => mostrarTooltipCliente(tarea, e)}
+                        onMouseMove={moverTooltipCliente}
+                        onMouseLeave={ocultarTooltipCliente}
                         title="Editar otros clientes"
                       >
                         {tarea.cliente}
                       </button>
                     ) : (
-                      <span>{tarea.cliente}</span>
+                      <span
+                        className="cliente-con-tooltip"
+                        onMouseEnter={(e) => mostrarTooltipCliente(tarea, e)}
+                        onMouseMove={moverTooltipCliente}
+                        onMouseLeave={ocultarTooltipCliente}
+                      >
+                        {tarea.cliente}
+                      </span>
                     )}
                   </td>
 
@@ -1020,6 +1100,31 @@ function Soporte() {
                 </tr>
               );
             })}
+
+            {clienteTooltip && (
+              <div
+                className="cliente-tooltip"
+                style={{
+                  left: `${clienteTooltip.x}px`,
+                  top: `${clienteTooltip.y}px`,
+                }}
+              >
+                {clienteTooltip.detalle && (
+                  <div className="cliente-tooltip-detalle">
+                    {clienteTooltip.detalle}
+                  </div>
+                )}
+
+                {clienteTooltip.historial.map((registro, indice) => (
+                  <div
+                    key={`${clienteTooltip.tareaId}-historial-${indice}`}
+                    className="cliente-tooltip-historial"
+                  >
+                    {registro}
+                  </div>
+                ))}
+              </div>
+            )}
 
             {tareasFiltradas.length === 0 && (
               <tr>

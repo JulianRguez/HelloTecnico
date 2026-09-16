@@ -508,3 +508,49 @@
   opacity: 0.6;
   cursor: wait;
 }
+/* =========================================================
+   GLOBO DE INFORMACIÓN DEL CLIENTE
+   ========================================================= */
+
+.cliente-con-tooltip {
+  cursor: help;
+}
+
+.cliente-tooltip {
+  position: fixed;
+  z-index: 9999;
+
+  max-width: 420px;
+  min-width: 180px;
+  padding: 10px 13px;
+
+  background: #172033;
+  color: #ffffff;
+
+  border: 1px solid #344054;
+  border-radius: 8px;
+
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+
+  font-size: 13px;
+  line-height: 1.4;
+
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+
+  pointer-events: none;
+}
+
+.cliente-tooltip-detalle {
+  font-weight: 600;
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+}
+
+.cliente-tooltip-historial {
+  font-weight: 400;
+}
+
+.cliente-tooltip-historial + .cliente-tooltip-historial {
+  margin-top: 3px;
+}
