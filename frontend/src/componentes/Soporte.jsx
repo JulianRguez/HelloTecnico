@@ -124,11 +124,13 @@ function Soporte() {
   const navigate = useNavigate();
 
   const [tareas, setTareas] = useState([]);
+  const [todasLasTareas, setTodasLasTareas] = useState([]);
   const [tecnicos, setTecnicos] = useState([]);
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [venceEditando, setVenceEditando] = useState({});
   const [busqueda, setBusqueda] = useState("");
+  const [actualizandoOrden, setActualizandoOrden] = useState(false);
 
   const [estadosSeleccionados, setEstadosSeleccionados] = useState({
     Pendiente: true,
@@ -151,6 +153,14 @@ function Soporte() {
     return <Navigate to="/" replace />;
   }
 
+  const cantidadTareasPorTecnico = todasLasTareas.reduce((conteo, tarea) => {
+    if (tarea.tecnico?._id) {
+      conteo[tarea.tecnico._id] = (conteo[tarea.tecnico._id] || 0) + 1;
+    }
+
+    return conteo;
+  }, {});
+
   const cargarTareas = async () => {
     try {
       setCargando(true);
@@ -163,6 +173,7 @@ function Soporte() {
         throw new Error(datos.mensaje || "No se pudieron obtener las tareas");
       }
 
+      setTodasLasTareas(datos);
       setTareas(datos);
     } catch (error) {
       console.error(error);
@@ -312,9 +323,15 @@ function Soporte() {
         throw new Error(datos.mensaje || "No se pudo asignar el técnico");
       }
 
+      // Actualiza inmediatamente la tarea modificada
       setTareas((actuales) =>
         actuales.map((item) => (item._id === tarea._id ? datos : item)),
       );
+
+      // El backend reorganiza las posiciones del técnico anterior
+      // y del nuevo técnico. Recargamos todas las tareas para
+      // reflejar esas posiciones inmediatamente en el frontend.
+      await cargarTareas();
     } catch (error) {
       console.error(error);
       setMensaje("No se pudo cambiar el técnico");
@@ -657,6 +674,40 @@ function Soporte() {
       setMensaje("No se pudo actualizar el grupo");
     }
   };
+  const cambiarOrdenTecnico = async (tareaId, nuevoOrden) => {
+    const orden = Number(nuevoOrden);
+
+    if (!Number.isInteger(orden) || orden < 1) {
+      return;
+    }
+
+    try {
+      setActualizandoOrden(true);
+
+      const respuesta = await fetch(`${API_URL}/api/tareas/${tareaId}/orden`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ordenTecnico: orden,
+        }),
+      });
+
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        throw new Error(datos.mensaje || "No se pudo cambiar la posición");
+      }
+
+      await cargarTareas();
+    } catch (error) {
+      console.error("Error cambiando orden:", error);
+      alert(error.message);
+    } finally {
+      setActualizandoOrden(false);
+    }
+  };
 
   return (
     <main className="soporte">
@@ -818,8 +869,30 @@ function Soporte() {
                     </select>
                   </td>
 
-                  <td className="columnaNum">
-                    {tarea.tecnico ? obtenerPosicionTecnico(tarea) : ""}
+                  <td className="soporte-orden">
+                    {tarea.tecnico?._id && tarea.ordenTecnico ? (
+                      <select
+                        value={tarea.ordenTecnico}
+                        onChange={(e) =>
+                          cambiarOrdenTecnico(tarea._id, e.target.value)
+                        }
+                        disabled={actualizandoOrden}
+                        className="soporte-orden-select"
+                      >
+                        {Array.from(
+                          {
+                            length:
+                              cantidadTareasPorTecnico[tarea.tecnico._id] ||
+                              tarea.ordenTecnico,
+                          },
+                          (_, indice) => indice + 1,
+                        ).map((numero) => (
+                          <option key={numero} value={numero}>
+                            {numero}
+                          </option>
+                        ))}
+                      </select>
+                    ) : null}
                   </td>
 
                   <td>
@@ -846,22 +919,13 @@ function Soporte() {
                   <td>{formatearSoloFecha(tarea.solicitud)}</td>
 
                   <td>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="DD/MM/AAAA HH:MM"
+                    <span
                       className={
                         venceHoyOAnterior(tarea.vence) ? "vence-vencido" : ""
                       }
-                      value={
-                        venceEditando[tarea._id] !== undefined
-                          ? venceEditando[tarea._id]
-                          : formatearVence(tarea.vence)
-                      }
-                      onChange={(e) => cambiarTextoVence(tarea, e.target.value)}
-                      onBlur={() => terminarEdicionVence(tarea)}
-                      maxLength={16}
-                    />
+                    >
+                      {formatearSoloFecha(tarea.vence)}
+                    </span>
                   </td>
 
                   <td>

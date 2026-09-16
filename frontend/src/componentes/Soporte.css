@@ -474,3 +474,37 @@
   color: #dc2626 !important;
   font-weight: bold !important;
 }
+.soporte-orden {
+  text-align: center;
+}
+
+.soporte-orden-select {
+  min-width: 0 !important;
+  width: 55px;
+  height: 32px;
+  padding: 4px 6px;
+
+  border: 1px solid #bfd8f2;
+  border-radius: 7px;
+
+  background: #dddddd;
+  color: #172033;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+
+  text-align: center;
+
+  cursor: pointer;
+}
+
+.soporte-orden-select:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.soporte-orden-select:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
