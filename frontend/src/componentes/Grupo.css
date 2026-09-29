@@ -330,27 +330,39 @@
 }
 
 /* ==================================================
-   CONFIRMAR
+   GUARDAR / DESCARTAR
    ================================================== */
 
-.grupo-confirmar {
-  width: 100% !important;
+.grupo-acciones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 
   margin-top: 16px;
+}
 
+.grupo-confirmar,
+.grupo-descartar {
+  width: 100% !important;
+
+  margin: 0 !important;
   padding: 11px !important;
 
   border: 0 !important;
   border-radius: 8px !important;
-
-  background: #4b7deb !important;
-  color: #ffffff !important;
 
   font-family: inherit;
   font-size: 15px;
   font-weight: 600;
 
   cursor: pointer;
+}
+
+/* GUARDAR */
+
+.grupo-confirmar {
+  background: #4b7deb !important;
+  color: #ffffff !important;
 }
 
 .grupo-confirmar:hover {
@@ -361,6 +373,22 @@
 .grupo-confirmar:active {
   background: #1e40af !important;
   color: #ffffff !important;
+}
+
+/* DESCARTAR */
+
+.grupo-descartar {
+  background: #eeeeee !important;
+  color: #475569 !important;
+}
+
+.grupo-descartar:hover {
+  background: #e2e8f0 !important;
+  color: #334155 !important;
+}
+
+.grupo-descartar:active {
+  background: #cbd5e1 !important;
 }
 
 /* ==================================================

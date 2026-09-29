@@ -4,7 +4,7 @@ import "./Grupo.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
-function Grupo({ grupo = [], onGuardarGrupo }) {
+function Grupo({ grupo = [], onGuardarGrupo, onDescartar  }) {
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [ip, setIp] = useState("");
@@ -273,16 +273,26 @@ function Grupo({ grupo = [], onGuardarGrupo }) {
       </div>
 
       {/* -------------------------------------------- */}
-      {/* CONFIRMAR */}
-      {/* -------------------------------------------- */}
+{/* GUARDAR / DESCARTAR */}
+{/* -------------------------------------------- */}
 
-      <button
-        type="button"
-        className="grupo-confirmar"
-        onClick={() => onGuardarGrupo(listaGrupo)}
-      >
-        Guardar y salir
-      </button>
+<div className="grupo-acciones">
+  <button
+    type="button"
+    className="grupo-descartar"
+    onClick={onDescartar}
+  >
+    Descartar
+  </button>
+
+  <button
+    type="button"
+    className="grupo-confirmar"
+    onClick={() => onGuardarGrupo(listaGrupo)}
+  >
+    Guardar
+  </button>
+</div>
     </div>
   );
 }

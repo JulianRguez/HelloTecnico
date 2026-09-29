@@ -31,27 +31,27 @@ const INSTALACIONES = ["Utp", "Fibra óptica", "Radio enlace"];
    ========================================================= */
 
 const PALETAS_ZONA = {
-  Antioquia: ["#95b5e3", "#a8c2f1", "#bcd1fa", "#cfdef5", "#e3eef4"],
+  Antioquia: ["#a8c2f1", "#cfdef5", "#bcd1fa", "#e3eef4", "#95b5e3"],
 
-  Paso: ["#e39595", "#f1a8a8", "#fabcbc", "#f5cfcf", "#f4e3e3"],
+  Paso: ["#f1a8a8", "#f5cfcf", "#fabcbc", "#f4e3e3", "#e39595"],
 
-  "San Nicolas": ["#b8c2be", "#c7cecb", "#d5dbd9", "#e3e7e5", "#f0f3f2"],
+  "San Nicolas": ["#c7cecb", "#e3e7e5", "#d5dbd9", "#f0f3f2", "#b8c2be"],
 
-  Filadelfia: ["#e3b095", "#f1c1a8", "#fad1bc", "#f5dfcf", "#f4ebe3"],
+  Filadelfia: ["#f1c1a8", "#f5dfcf", "#fad1bc", "#f4ebe3", "#e3b095"],
 
-  Tunal: ["#95cfc3", "#a8d8ce", "#bce1da", "#cfeae5", "#e3f4f1"],
+  Tunal: ["#a8d8ce", "#cfeae5", "#bce1da", "#e3f4f1", "#95cfc3"],
 
-  "San Jeronimo": ["#be95e3", "#cca8f1", "#dbbcfa", "#e3cff5", "#ede3f4"],
+  "San Jeronimo": ["#cca8f1", "#e3cff5", "#dbbcfa", "#ede3f4", "#be95e3"],
 
-  Piñones: ["#e3df95", "#f1eea8", "#faf9bc", "#f5f0cf", "#f4f2e3"],
+  Piñones: ["#f1eea8", "#f5f0cf", "#faf9bc", "#f4f2e3", "#e3df95"],
 
-  Llanadas: ["#e3df95", "#f1eea8", "#faf9bc", "#f5f0cf", "#f4f2e3"],
+  Llanadas: ["#f1eea8", "#f5f0cf", "#faf9bc", "#f4f2e3", "#e3df95"],
 
-  "Quebrada Seca": ["#e3b095", "#f1c1a8", "#fad1bc", "#f5dfcf", "#f4ebe3"],
+  "Quebrada Seca": ["#f1c1a8", "#f5dfcf", "#fad1bc", "#f4ebe3", "#e3b095"],
 
-  Sucre: ["#95cfc3", "#a8d8ce", "#bce1da", "#cfeae5", "#e3f4f1"],
+  Sucre: ["#a8d8ce", "#cfeae5", "#bce1da", "#e3f4f1", "#95cfc3"],
 
-  Liborina: ["#be95e3", "#cca8f1", "#dbbcfa", "#e3cff5", "#ede3f4"],
+  Liborina: ["#cca8f1", "#e3cff5", "#dbbcfa", "#ede3f4", "#be95e3"],
 };
 
 /*
@@ -117,6 +117,44 @@ const obtenerEstiloCliente = (zona) => {
   return {
     backgroundColor: paleta[3],
     color: "#000000",
+  };
+};
+
+/* =========================================================
+   COLORES POR TÉCNICO
+   Cada técnico recibe un color pastel distinto.
+   El primero es el verde que ya usabas.
+   ========================================================= */
+
+const PALETA_TECNICOS = [
+  { fondo: "#9fd8c8", texto: "#16866d", borde: "#b8e8dc" }, // verde
+  { fondo: "#a9c8f0", texto: "#1f5fa8", borde: "#c3d9f5" }, // azul
+  { fondo: "#f5e08a", texto: "#8a6a00", borde: "#f7e9a8" }, // amarillo
+  { fondo: "#f7bd8a", texto: "#b25a00", borde: "#f9d0ab" }, // naranja
+  { fondo: "#f4b0c8", texto: "#a8325f", borde: "#f8c8d9" }, // rosado
+  { fondo: "#cfb0ec", texto: "#6a3fa0", borde: "#dcc7f2" }, // morado
+  { fondo: "#9adbe8", texto: "#1a7286", borde: "#b5e5ee" }, // turquesa
+  { fondo: "#f4a8a0", texto: "#a63a30", borde: "#f7c2bc" }, // coral
+  { fondo: "#cfe58f", texto: "#547a0e", borde: "#ddedb0" }, // lima
+  { fondo: "#b7c3d6", texto: "#445570", borde: "#ccd5e3" }, // gris azulado
+];
+
+const obtenerEstiloTecnico = (tecnicoId, tecnicos) => {
+  if (!tecnicoId) return undefined;
+
+  // Se ordenan los _id para que el color de cada técnico no cambie
+  // aunque la lista llegue en otro orden. Los técnicos nuevos van al final.
+  const ids = tecnicos.map((tecnico) => tecnico._id).sort();
+  const posicion = ids.indexOf(tecnicoId);
+
+  if (posicion === -1) return undefined; // usa el verde del CSS
+
+  const color = PALETA_TECNICOS[posicion % PALETA_TECNICOS.length];
+
+  return {
+    backgroundColor: color.fondo,
+    color: color.texto,
+    borderColor: color.borde,
   };
 };
 
@@ -887,6 +925,8 @@ function Soporte() {
 
               const estiloCliente = obtenerEstiloCliente(tarea.zona);
 
+              const estiloTecnico = obtenerEstiloTecnico(tarea.tecnico?._id, tecnicos);
+
               return (
                 <tr key={tarea._id}>
                   <td className="cliente-celda" style={estiloCliente}>
@@ -1004,6 +1044,7 @@ function Soporte() {
                       className={`boton-tecnico ${
                         tarea.tecnico ? "asignado" : "sin-asignar"
                       }`}
+                      style={estiloTecnico}
                       value={tarea.tecnico?._id || ""}
                       onChange={(e) => cambiarTecnico(tarea, e.target.value)}
                       disabled={tarea.estado !== "Pendiente"}
@@ -1198,15 +1239,20 @@ function Soporte() {
       )}
 
       {modalGrupo && (
-        <div className="modal">
-          <div className="modal-contenido">
-            <Grupo
-              grupo={tareaGrupo?.grupo ?? []}
-              onGuardarGrupo={guardarGrupo}
-            />
-          </div>
-        </div>
-      )}
+  <div className="modal">
+    <div className="modal-contenido">
+      <Grupo
+        grupo={tareaGrupo?.grupo ?? []}
+        onGuardarGrupo={guardarGrupo}
+        onDescartar={() => {
+          setModalGrupo(false);
+          setTareaGrupo(null);
+        }}
+      />
+    </div>
+  </div>
+)}
+
     </main>
   );
 }
