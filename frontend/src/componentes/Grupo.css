@@ -271,10 +271,10 @@
 }
 
 /* ==================================================
-   ELIMINAR
+   REALIZADO (chulo / guion)
    ================================================== */
 
-.grupo-eliminar {
+.grupo-estado {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -291,36 +291,30 @@
   border-radius: 7px !important;
 
   background: transparent !important;
-  color: #dc2626 !important;
-
   cursor: pointer;
-
-  font-size: 18px !important;
-  line-height: 1 !important;
 }
 
-.grupo-eliminar svg {
+.grupo-estado svg {
   display: block !important;
-
-  width: 18px !important;
-  height: 18px !important;
-
   stroke: currentColor !important;
-  color: inherit !important;
-
   flex-shrink: 0;
 }
 
-.grupo-eliminar:hover {
-  background: #fee2e2 !important;
-  color: #dc2626 !important;
+.grupo-estado.si {
+  color: #16a34a !important; /* verde */
 }
 
-.grupo-eliminar:active {
-  background: #fecaca !important;
-  color: #dc2626 !important;
+.grupo-estado.no {
+  color: #94a3b8 !important; /* gris */
 }
 
+.grupo-estado:hover {
+  background: #f1f5f9 !important;
+}
+
+.grupo-estado:active {
+  background: #e2e8f0 !important;
+}
 /* ==================================================
    LISTA VACÍA
    ================================================== */

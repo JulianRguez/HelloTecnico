@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import path from "path";
 import { fileURLToPath } from "url";
-
+import eventosRoutes from "./routes/eventos.routes.js";
 import usuarioRoutes from "./routes/usuario.routes.js";
 import tareaRoutes from "./routes/tarea.routes.js";
 
@@ -33,6 +33,7 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api/usuarios", usuarioRoutes);
 app.use("/api/tareas", tareaRoutes);
+app.use("/api/eventos", eventosRoutes);
 
 // Servir frontend
 app.use(express.static(frontendPath));

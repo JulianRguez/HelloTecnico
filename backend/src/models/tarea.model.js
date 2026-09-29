@@ -165,6 +165,10 @@ const tareaSchema = new mongoose.Schema(
           ip: {
             type: String,
             trim: true
+          },
+          realizado: {
+          type: Boolean,
+          default: false
           }
         }
       ],

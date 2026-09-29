@@ -1,5 +1,6 @@
 import { Router } from "express";
 import mongoose from "mongoose";
+import { notificarCambio } from "./eventos.routes.js";
 
 import Tarea from "../models/tarea.model.js";
 import Usuario from "../models/usuario.model.js";
@@ -145,7 +146,7 @@ router.post("/", async (req, res) => {
     }
 
     const tarea = await Tarea.create(cuerpo);
-
+     notificarCambio("creada", tarea._id); 
     res.status(201).json(tarea);
   } catch (error) {
     res.status(400).json({
@@ -306,7 +307,7 @@ router.put("/:id", async (req, res) => {
         runValidators: true,
       }
     ).populate("tecnico", "nombre perfil");
-
+    notificarCambio("modificada", id);
     res.json(tarea);
   } catch (error) {
     res.status(400).json({
@@ -485,7 +486,7 @@ router.put("/:id/orden", async (req, res) => {
       "tecnico",
       "nombre perfil"
     );
-
+    notificarCambio("orden", id); 
     res.json(tareaActualizada);
   } catch (error) {
     res.status(400).json({
@@ -561,7 +562,7 @@ if (
         mensaje: "tarea no existe"
       });
     }
-
+    notificarCambio("historial", id);
     res.json(tarea);
   } catch (error) {
     res.status(400).json({
@@ -597,7 +598,7 @@ router.delete("/estado/:estado", async (req, res) => {
     const resultado = await Tarea.deleteMany({
       estado,
     });
-
+    notificarCambio("eliminadas"); 
     res.json({
       mensaje: `Se eliminaron las tareas con estado ${estado}`,
       eliminadas: resultado.deletedCount,
@@ -631,7 +632,7 @@ router.delete("/:id", async (req, res) => {
         mensaje: "tarea no existe"
       });
     }
-
+    notificarCambio("eliminada", id); 
     res.json({
       mensaje: "Tarea eliminada correctamente",
       tarea
@@ -1070,6 +1071,54 @@ router.get("/:id", async (req, res) => {
   } catch (error) {
     res.status(500).json({
       mensaje: "Error buscando tarea",
+      error: error.message
+    });
+  }
+});
+
+/*
+  MARCAR / DESMARCAR UN CLIENTE DEL GRUPO
+  PATCH /api/tareas/:id/grupo/:clienteId
+  body: { "realizado": true | false }
+*/
+router.patch("/:id/grupo/:clienteId", async (req, res) => {
+  try {
+    const { id, clienteId } = req.params;
+    const { realizado } = req.body;
+
+    if (
+      !mongoose.Types.ObjectId.isValid(id) ||
+      !mongoose.Types.ObjectId.isValid(clienteId)
+    ) {
+      return res.status(400).json({
+        mensaje: "El _id no es válido"
+      });
+    }
+
+    if (typeof realizado !== "boolean") {
+      return res.status(400).json({
+        mensaje: "El campo realizado debe ser true o false"
+      });
+    }
+
+    const tarea = await Tarea.findOneAndUpdate(
+      { _id: id, "grupo._id": clienteId },
+      { $set: { "grupo.$.realizado": realizado } },
+      { new: true }
+    ).populate("tecnico", "nombre perfil");
+
+    if (!tarea) {
+      return res.status(404).json({
+        mensaje: "La tarea o el cliente del grupo no existe"
+      });
+    }
+
+    notificarCambio("grupo", id);
+
+    res.json(tarea);
+  } catch (error) {
+    res.status(400).json({
+      mensaje: "No se pudo actualizar el cliente del grupo",
       error: error.message
     });
   }

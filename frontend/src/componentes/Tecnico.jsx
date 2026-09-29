@@ -8,6 +8,8 @@ import {
   Wifi,
   FileText,
   CircleDollarSign,
+  Check,
+  Minus,
 } from "lucide-react";
 
 import Finalizar from "./Finalizar";
@@ -100,6 +102,38 @@ function Tecnico() {
     }
   };
 
+  const alternarRealizado = async (cliente) => {
+  if (!tareaSiguiente?._id || !cliente._id) return;
+
+  try {
+    const respuesta = await fetch(
+      `${API_URL}/api/tareas/${tareaSiguiente._id}/grupo/${cliente._id}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ realizado: !cliente.realizado }),
+      },
+    );
+
+    const datos = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(datos.mensaje || "No se pudo actualizar el cliente");
+    }
+
+    setTareaSiguiente((actual) =>
+      actual ? { ...actual, grupo: datos.grupo } : actual,
+    );
+  } catch (error) {
+    console.error(error);
+    setMensaje(error.message || "No se pudo actualizar el cliente");
+
+    setTimeout(() => {
+      setMensaje("");
+    }, 2000);
+  }
+};
+
   const abrirFinalizar = () => {
     setModalFinalizar(true);
   };
@@ -163,44 +197,55 @@ function Tecnico() {
 
                 {/* CLIENTES DEL GRUPO */}
                 {tareaSiguiente.grupo.map((cliente, indice) => (
-                  <div
-                    className="tecnico-cliente-grupo"
-                    key={cliente._id || indice}
-                  >
-                    <span className="tecnico-grupo-nombre">
-                      {cliente.nombre}:
-                    </span>
+  <div
+    className="tecnico-cliente-grupo"
+    key={cliente._id || indice}
+  >
+    <div className="tecnico-grupo-info">
+      <span className="tecnico-grupo-nombre">{cliente.nombre}:</span>
 
-                    {cliente.ip && (
-                      <>
-                        <span className="tecnico-grupo-etiqueta"> IP: </span>
-                        <button
-                          type="button"
-                          className="tecnico-grupo-dato"
-                          onClick={() => copiar(cliente.ip)}
-                        >
-                          {cliente.ip}
-                        </button>
-                      </>
-                    )}
+      {cliente.ip && (
+        <>
+          <span className="tecnico-grupo-etiqueta"> IP: </span>
+          <button
+            type="button"
+            className="tecnico-grupo-dato"
+            onClick={() => copiar(cliente.ip)}
+          >
+            {cliente.ip}
+          </button>
+        </>
+      )}
 
-                    {cliente.telefono && (
-                      <>
-                        <span className="tecnico-grupo-etiqueta">
-                          {" "}
-                          Telefono:{" "}
-                        </span>
-                        <button
-                          type="button"
-                          className="tecnico-grupo-dato"
-                          onClick={() => copiar(cliente.telefono)}
-                        >
-                          {cliente.telefono}
-                        </button>
-                      </>
-                    )}
-                  </div>
-                ))}
+      {cliente.telefono && (
+        <>
+          <span className="tecnico-grupo-etiqueta"> Telefono: </span>
+          <button
+            type="button"
+            className="tecnico-grupo-dato"
+            onClick={() => copiar(cliente.telefono)}
+          >
+            {cliente.telefono}
+          </button>
+        </>
+      )}
+    </div>
+
+    <button
+      type="button"
+      className={`tecnico-grupo-estado ${cliente.realizado ? "si" : "no"}`}
+      onClick={() => alternarRealizado(cliente)}
+      title={cliente.realizado ? "Marcar como pendiente" : "Marcar como realizado"}
+      aria-label={cliente.realizado ? "Marcar como pendiente" : "Marcar como realizado"}
+    >
+      {cliente.realizado ? (
+        <Check size={22} strokeWidth={3} />
+      ) : (
+        <Minus size={22} strokeWidth={3} />
+      )}
+    </button>
+  </div>
+))}
               </>
             ) : (
               <>

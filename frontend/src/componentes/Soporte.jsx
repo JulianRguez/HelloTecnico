@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
+import useInactividad from "../hooks/useInactividad";
 import { History, Pencil } from "lucide-react";
 import Formulario from "./Formulario";
 import Historial from "./Historial";
@@ -131,7 +132,6 @@ function Soporte() {
   const [venceEditando, setVenceEditando] = useState({});
   const [busqueda, setBusqueda] = useState("");
   const [actualizandoOrden, setActualizandoOrden] = useState(false);
-
   const [estadosSeleccionados, setEstadosSeleccionados] = useState({
     Pendiente: true,
     Realizado: false,
@@ -139,17 +139,18 @@ function Soporte() {
     Pospuesto: true,
     Cerrado: false,
   });
-
   const [modalFormulario, setModalFormulario] = useState(false);
   const [tareaEditar, setTareaEditar] = useState(null);
-
   const [modalHistorial, setModalHistorial] = useState(false);
   const [tareaHistorial, setTareaHistorial] = useState(null);
-
   const [modalGrupo, setModalGrupo] = useState(false);
   const [tareaGrupo, setTareaGrupo] = useState(null);
   const [clienteTooltip, setClienteTooltip] = useState(null);
-
+  // Cierra la sesión tras 30 minutos sin interacción
+  useInactividad(5, () => {
+    sessionStorage.removeItem("usuario");
+    navigate("/", { replace: true });
+  });
   if (!usuario || usuario.perfil !== "Soporte") {
     return <Navigate to="/" replace />;
   }
@@ -162,27 +163,29 @@ function Soporte() {
     return conteo;
   }, {});
 
-  const cargarTareas = async () => {
-    try {
+  const cargarTareas = async (silencioso = false) => {
+  try {
+    if (!silencioso) {
       setCargando(true);
       setMensaje("");
-
-      const respuesta = await fetch(`${API_URL}/api/tareas`);
-      const datos = await respuesta.json();
-
-      if (!respuesta.ok) {
-        throw new Error(datos.mensaje || "No se pudieron obtener las tareas");
-      }
-
-      setTodasLasTareas(datos);
-      setTareas(datos);
-    } catch (error) {
-      console.error(error);
-      setMensaje("No fue posible cargar las tareas");
-    } finally {
-      setCargando(false);
     }
-  };
+
+    const respuesta = await fetch(`${API_URL}/api/tareas`);
+    const datos = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(datos.mensaje || "No se pudieron obtener las tareas");
+    }
+
+    setTodasLasTareas(datos);
+    setTareas(datos);
+  } catch (error) {
+    console.error(error);
+    if (!silencioso) setMensaje("No fue posible cargar las tareas");
+  } finally {
+    if (!silencioso) setCargando(false);
+  }
+};
 
   const cargarTecnicos = async () => {
     try {
@@ -204,6 +207,31 @@ function Soporte() {
     cargarTareas();
     cargarTecnicos();
   }, []);
+
+  useEffect(() => {
+  const eventos = new EventSource(`${API_URL}/api/eventos`);
+  let temporizador = null;
+  let yaSeConecto = false;
+
+  // Agrupa varios avisos seguidos en una sola recarga
+  const recargar = () => {
+    clearTimeout(temporizador);
+    temporizador = setTimeout(() => cargarTareas(true), 300);
+  };
+
+  eventos.addEventListener("tareas", recargar);
+
+  // Si la conexión se cayó y volvió, recarga por si se perdió algún aviso
+  eventos.onopen = () => {
+    if (yaSeConecto) recargar();
+    yaSeConecto = true;
+  };
+
+  return () => {
+    clearTimeout(temporizador);
+    eventos.close();
+  };
+}, []);
 
   const tareasFiltradas = useMemo(() => {
     let resultado = tareas.filter(
@@ -788,10 +816,6 @@ function Soporte() {
         </div>
 
         <div className="soporte-header-botones">
-          <button type="button" onClick={cargarTareas} disabled={cargando}>
-            {cargando ? "Actualizando..." : "Actualizar"}
-          </button>
-
           <button type="button" onClick={abrirNuevo}>
             Nuevo
           </button>
@@ -835,17 +859,17 @@ function Soporte() {
               <th className="columna-posicion">#</th>
               <th>Técnico</th>
               <th>Zona</th>
-              <th>Solicitud</th>
               <th>Vence</th>
-              <th>Instalación</th>
+              <th>IP Router</th>
               <th>Dirección</th>
               <th>Teléfono</th>
               <th>Teléfono 2</th>
-              <th>IP Router</th>
               <th>IP Antena</th>
               <th>Plan</th>
               <th>Debe</th>
               <th>Valor</th>
+              <th>Solicitud</th>
+              <th>Instalación</th>
               <th>Detalle</th>
               <th>DOC</th>
             </tr>
@@ -996,8 +1020,6 @@ function Soporte() {
 
                   <td>{tarea.zona}</td>
 
-                  <td>{formatearSoloFecha(tarea.solicitud)}</td>
-
                   <td>
                     <span
                       className={
@@ -1009,23 +1031,14 @@ function Soporte() {
                   </td>
 
                   <td>
-                    <select
-                      className={`boton-instalacion ${
-                        tarea.instalacion === "Fibra óptica"
-                          ? "instalacion-fibra"
-                          : ""
-                      }`}
-                      value={tarea.instalacion}
-                      onChange={(e) =>
-                        cambiarInstalacion(tarea, e.target.value)
-                      }
+                    <button
+                      type="button"
+                      className={tarea.ip ? "boton-ip" : "boton-ip vacio"}
+                      onClick={() => copiar(tarea.ip)}
+                      disabled={!tarea.ip}
                     >
-                      {INSTALACIONES.map((instalacion) => (
-                        <option key={instalacion} value={instalacion}>
-                          {instalacion}
-                        </option>
-                      ))}
-                    </select>
+                      {tarea.ip || ""}
+                    </button>
                   </td>
 
                   <td>{tarea.direccion}</td>
@@ -1049,17 +1062,6 @@ function Soporte() {
                       onClick={() => copiar(tarea.telefono2)}
                     >
                       {tarea.telefono2 || ""}
-                    </button>
-                  </td>
-
-                  <td>
-                    <button
-                      type="button"
-                      className={tarea.ip ? "boton-ip" : "boton-ip vacio"}
-                      onClick={() => copiar(tarea.ip)}
-                      disabled={!tarea.ip}
-                    >
-                      {tarea.ip || ""}
                     </button>
                   </td>
 
@@ -1093,6 +1095,28 @@ function Soporte() {
                   </td>
 
                   <td>{tarea.valor}</td>
+
+                  <td>{formatearSoloFecha(tarea.solicitud)}</td>
+
+                  <td>
+                    <select
+                      className={`boton-instalacion ${
+                        tarea.instalacion === "Fibra óptica"
+                          ? "instalacion-fibra"
+                          : ""
+                      }`}
+                      value={tarea.instalacion}
+                      onChange={(e) =>
+                        cambiarInstalacion(tarea, e.target.value)
+                      }
+                    >
+                      {INSTALACIONES.map((instalacion) => (
+                        <option key={instalacion} value={instalacion}>
+                          {instalacion}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
 
                   <td>{tarea.detalle}</td>
 

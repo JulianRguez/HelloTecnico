@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, X } from "lucide-react";
+import { Search, Check, Minus } from "lucide-react";
 import "./Grupo.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
@@ -109,6 +109,7 @@ function Grupo({ grupo = [], onGuardarGrupo }) {
       nombre: nombre.trim().toUpperCase(),
       telefono: telefono.trim(),
       ip: ip.trim(),
+      realizado: false,
     };
 
     setListaGrupo((actual) => [...actual, nuevoCliente]);
@@ -120,14 +121,18 @@ function Grupo({ grupo = [], onGuardarGrupo }) {
   };
 
   // --------------------------------------------------
-  // ELIMINAR CLIENTE
+  // ACTUALIZAR GRUPO CLIENTE
   // --------------------------------------------------
 
-  const eliminarCliente = (indice) => {
-    setListaGrupo((actual) =>
-      actual.filter((_, posicion) => posicion !== indice),
-    );
-  };
+  const alternarRealizado = (indice) => {
+  setListaGrupo((actual) =>
+    actual.map((cliente, posicion) =>
+      posicion === indice
+        ? { ...cliente, realizado: !cliente.realizado }
+        : cliente,
+    ),
+  );
+};
 
   // --------------------------------------------------
   // COPIAR IP
@@ -248,15 +253,20 @@ function Grupo({ grupo = [], onGuardarGrupo }) {
               )}
 
               {/* ELIMINAR */}
-              <button
-                type="button"
-                className="grupo-eliminar"
-                onClick={() => eliminarCliente(indice)}
-                title="Eliminar cliente"
-                aria-label="Eliminar cliente"
-              >
-                <X size={18} />
-              </button>
+              {/* REALIZADO */}
+                <button
+                  type="button"
+                  className={`grupo-estado ${cliente.realizado ? "si" : "no"}`}
+                  onClick={() => alternarRealizado(indice)}
+                  title={cliente.realizado ? "Marcar como pendiente" : "Marcar como realizado"}
+                  aria-label={cliente.realizado ? "Marcar como pendiente" : "Marcar como realizado"}
+                >
+                  {cliente.realizado ? (
+                    <Check size={20} strokeWidth={3} />
+                  ) : (
+                    <Minus size={20} strokeWidth={3} />
+                  )}
+                </button>
             </div>
           ))
         )}

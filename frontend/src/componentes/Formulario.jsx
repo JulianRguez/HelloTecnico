@@ -364,6 +364,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
             nombre: formulario.cliente,
             telefono: formulario.telefono,
             ip: formulario.ip,
+            realizado: false,
           },
           ...grupoGuardar,
         ];

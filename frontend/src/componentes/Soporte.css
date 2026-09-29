@@ -554,3 +554,16 @@
 .cliente-tooltip-historial + .cliente-tooltip-historial {
   margin-top: 3px;
 }
+
+.tabla-tareas select.boton-debe {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  box-sizing: border-box;
+  min-width: 0;
+  width: 60px;
+  padding: 5px 0;
+  text-align: center;
+  text-align-last: center;
+}

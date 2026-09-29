@@ -397,6 +397,11 @@
   margin-left: auto;
 }
 .tecnico-cliente-grupo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
   width: 100%;
   margin-bottom: 8px;
   padding: 8px 10px;
@@ -411,6 +416,38 @@
   overflow-wrap: anywhere;
 }
 
+.tecnico-grupo-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tecnico-grupo-estado {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 36px;
+  height: 36px;
+  padding: 0;
+
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.tecnico-grupo-estado.si {
+  color: #16a34a; /* verde */
+}
+
+.tecnico-grupo-estado.no {
+  color: #94a3b8; /* gris */
+}
+
+.tecnico-grupo-estado:active {
+  transform: scale(0.92);
+}
 .tecnico-grupo-nombre {
   font-weight: 700;
   color: #172033;
