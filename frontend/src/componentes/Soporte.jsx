@@ -184,7 +184,7 @@ function Soporte() {
   const [modalGrupo, setModalGrupo] = useState(false);
   const [tareaGrupo, setTareaGrupo] = useState(null);
   const [clienteTooltip, setClienteTooltip] = useState(null);
-  // Cierra la sesión tras 30 minutos sin interacción
+  // Cierra la sesión tras 5 minutos sin interacción
   useInactividad(5, () => {
     sessionStorage.removeItem("usuario");
     navigate("/", { replace: true });
