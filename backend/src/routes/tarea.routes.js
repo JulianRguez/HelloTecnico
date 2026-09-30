@@ -67,6 +67,8 @@ router.post("/", async (req, res) => {
   try {
     const cuerpo = { ...req.body };
 
+      
+
     /*
       ============================================================
       ASIGNACIÓN AUTOMÁTICA DE ORDEN AL CREAR LA TAREA
@@ -179,6 +181,40 @@ router.put("/:id", async (req, res) => {
     }
 
     const cuerpo = { ...req.body };
+
+    // El creador y el marcado no se modifican desde la edición general
+    delete cuerpo.creador;
+    delete cuerpo.marcado;
+
+    /*
+      ============================================================
+      GRUPO: conservar "realizado" del servidor
+      Los chulos solo se cambian con PATCH /:id/grupo/:clienteId.
+      Si el cliente ya existe (trae _id) se respeta lo que hay en
+      la base de datos; si es nuevo se toma lo que envíe (o false).
+      ============================================================
+    */
+
+    if (Array.isArray(cuerpo.grupo)) {
+      const realizadoActual = new Map(
+        (tareaActual.grupo || []).map((cliente) => [
+          String(cliente._id),
+          cliente.realizado === true,
+        ])
+      );
+
+      cuerpo.grupo = cuerpo.grupo.map((cliente) => {
+        const clienteId = cliente._id ? String(cliente._id) : null;
+
+        return {
+          ...cliente,
+          realizado:
+            clienteId && realizadoActual.has(clienteId)
+              ? realizadoActual.get(clienteId)
+              : cliente.realizado === true,
+        };
+      });
+    }
 
     /*
       ============================================================
@@ -307,7 +343,9 @@ router.put("/:id", async (req, res) => {
         runValidators: true,
       }
     ).populate("tecnico", "nombre perfil");
+
     notificarCambio("modificada", id);
+
     res.json(tarea);
   } catch (error) {
     res.status(400).json({
@@ -1119,6 +1157,51 @@ router.patch("/:id/grupo/:clienteId", async (req, res) => {
   } catch (error) {
     res.status(400).json({
       mensaje: "No se pudo actualizar el cliente del grupo",
+      error: error.message
+    });
+  }
+});
+
+/*
+  MARCAR / DESMARCAR UNA TAREA
+  PATCH /api/tareas/:id/marcado
+  body: { "marcado": true | false }
+*/
+router.patch("/:id/marcado", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { marcado } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        mensaje: "El _id de la tarea no es válido"
+      });
+    }
+
+    if (typeof marcado !== "boolean") {
+      return res.status(400).json({
+        mensaje: "El campo marcado debe ser true o false"
+      });
+    }
+
+    const tarea = await Tarea.findByIdAndUpdate(
+      id,
+      { $set: { marcado } },
+      { new: true }
+    ).populate("tecnico", "nombre perfil");
+
+    if (!tarea) {
+      return res.status(404).json({
+        mensaje: "tarea no existe"
+      });
+    }
+
+    notificarCambio("marcado", id);
+
+    res.json(tarea);
+  } catch (error) {
+    res.status(400).json({
+      mensaje: "No se pudo actualizar el marcado",
       error: error.message
     });
   }

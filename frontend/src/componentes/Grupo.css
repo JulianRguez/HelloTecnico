@@ -173,6 +173,7 @@
 
 /* ==================================================
    CADA REGISTRO
+   5 columnas: nombre, teléfono, IP, chulo/guion, X
    ================================================== */
 
 .grupo-registro {
@@ -182,6 +183,7 @@
     minmax(140px, 1fr)
     minmax(90px, 130px)
     minmax(110px, 150px)
+    32px
     32px;
 
   align-items: center;
@@ -271,7 +273,7 @@
 }
 
 /* ==================================================
-   REALIZADO (chulo / guion)
+   REALIZADO (chulo verde / guion gris)
    ================================================== */
 
 .grupo-estado {
@@ -291,21 +293,24 @@
   border-radius: 7px !important;
 
   background: transparent !important;
+
   cursor: pointer;
 }
 
 .grupo-estado svg {
   display: block !important;
+
   stroke: currentColor !important;
+
   flex-shrink: 0;
 }
 
 .grupo-estado.si {
-  color: #16a34a !important; /* verde */
+  color: #16a34a !important;
 }
 
 .grupo-estado.no {
-  color: #94a3b8 !important; /* gris */
+  color: #94a3b8 !important;
 }
 
 .grupo-estado:hover {
@@ -315,6 +320,58 @@
 .grupo-estado:active {
   background: #e2e8f0 !important;
 }
+
+/* ==================================================
+   ELIMINAR (X roja)
+   ================================================== */
+
+.grupo-eliminar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: 32px !important;
+  min-width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  border: 0 !important;
+  border-radius: 7px !important;
+
+  background: transparent !important;
+  color: #dc2626 !important;
+
+  cursor: pointer;
+
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+
+.grupo-eliminar svg {
+  display: block !important;
+
+  width: 18px !important;
+  height: 18px !important;
+
+  stroke: currentColor !important;
+  color: inherit !important;
+
+  flex-shrink: 0;
+}
+
+.grupo-eliminar:hover {
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+
+.grupo-eliminar:active {
+  background: #fecaca !important;
+  color: #dc2626 !important;
+}
+
 /* ==================================================
    LISTA VACÍA
    ================================================== */
@@ -409,6 +466,7 @@
       minmax(100px, 1fr)
       minmax(80px, 100px)
       minmax(95px, 110px)
+      32px
       32px;
 
     gap: 5px;

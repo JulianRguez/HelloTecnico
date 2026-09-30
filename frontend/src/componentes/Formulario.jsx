@@ -98,7 +98,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
     .map((cliente) => cliente.nombre?.split(" ")[0])
     .filter(Boolean)
     .join(", ");
-
+  const usuario = JSON.parse(sessionStorage.getItem("usuario"));
   const nombreValido =
     formulario.cliente.length >= 7 && formulario.cliente.includes(" ");
 
@@ -398,6 +398,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
         detalle: formulario.detalle,
         tecnico: formulario.tecnico || null,
         grupo: grupoGuardar,
+        ...(!editar && { creador: usuario?.nombre || "" }),
       };
 
       const url = editar
@@ -858,6 +859,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
           <div className="modal-grupo-contenido">
             <Grupo
               grupo={formulario.grupo}
+              tareaId={tarea?._id}
               onGuardarGrupo={(nuevoGrupo) => {
                 setFormulario((anterior) => ({
                   ...anterior,

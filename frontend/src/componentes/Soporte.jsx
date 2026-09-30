@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import useInactividad from "../hooks/useInactividad";
-import { History, Pencil } from "lucide-react";
+import { Star, Pencil } from "lucide-react";
 import Formulario from "./Formulario";
-import Historial from "./Historial";
 import Grupo from "./Grupo";
 import "./Soporte.css";
 
@@ -179,8 +178,6 @@ function Soporte() {
   });
   const [modalFormulario, setModalFormulario] = useState(false);
   const [tareaEditar, setTareaEditar] = useState(null);
-  const [modalHistorial, setModalHistorial] = useState(false);
-  const [tareaHistorial, setTareaHistorial] = useState(null);
   const [modalGrupo, setModalGrupo] = useState(false);
   const [tareaGrupo, setTareaGrupo] = useState(null);
   const [clienteTooltip, setClienteTooltip] = useState(null);
@@ -650,11 +647,38 @@ function Soporte() {
     setModalFormulario(true);
   };
 
-  const abrirHistorial = (tarea) => {
-    setTareaHistorial(tarea);
-    setModalHistorial(true);
-  };
+const alternarMarcado = async (tarea) => {
+  const nuevoValor = !tarea.marcado;
 
+  const aplicar = (valor) => (actuales) =>
+    actuales.map((item) =>
+      item._id === tarea._id ? { ...item, marcado: valor } : item,
+    );
+
+  // Cambio inmediato en pantalla
+  setTareas(aplicar(nuevoValor));
+
+  try {
+    const respuesta = await fetch(
+      `${API_URL}/api/tareas/${tarea._id}/marcado`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ marcado: nuevoValor }),
+      },
+    );
+
+    if (!respuesta.ok) {
+      throw new Error("No se pudo actualizar el marcado");
+    }
+  } catch (error) {
+    console.error(error);
+
+    // Si falló, vuelve al valor anterior
+    setTareas(aplicar(!nuevoValor));
+    setMensaje("No se pudo actualizar el marcado");
+  }
+};
   const abrirGrupo = (tarea) => {
     setTareaGrupo(tarea);
     setModalGrupo(true);
@@ -910,6 +934,7 @@ function Soporte() {
               <th>Instalación</th>
               <th>Detalle</th>
               <th>DOC</th>
+              <th>Creador</th>
             </tr>
           </thead>
 
@@ -932,12 +957,18 @@ function Soporte() {
                   <td className="cliente-celda" style={estiloCliente}>
                     <button
                       type="button"
-                      className="boton-icono boton-historial-icono"
-                      onClick={() => abrirHistorial(tarea)}
-                      title="Ver historial"
-                      aria-label={`Ver historial de ${tarea.cliente}`}
+                      className={`boton-icono boton-marcado-icono ${
+                        tarea.marcado ? "si" : "no"
+                      }`}
+                      onClick={() => alternarMarcado(tarea)}
+                      title={tarea.marcado ? "Quitar prioridad" : "Marcar como prioritario"}
+                      aria-label={
+                        tarea.marcado
+                          ? `Quitar prioridad de ${tarea.cliente}`
+                          : `Marcar ${tarea.cliente} como prioritario`
+                      }
                     >
-                      <History size={16} />
+                      <Star size={16} />
                     </button>
 
                     <button
@@ -1162,6 +1193,7 @@ function Soporte() {
                   <td>{tarea.detalle}</td>
 
                   <td>{tarea.doc || ""}</td>
+                  <td>{tarea.creador || ""}</td>
                 </tr>
               );
             })}
@@ -1193,7 +1225,7 @@ function Soporte() {
 
             {tareasFiltradas.length === 0 && (
               <tr>
-                <td colSpan="19" className="sin-resultados">
+                <td colSpan="20" className="sin-resultados">
                   No hay tareas para mostrar
                 </td>
               </tr>
@@ -1218,31 +1250,13 @@ function Soporte() {
         </div>
       )}
 
-      {modalHistorial && (
-        <div
-          className="modal"
-          onClick={() => {
-            setModalHistorial(false);
-            setTareaHistorial(null);
-          }}
-        >
-          <div className="modal-contenido" onClick={(e) => e.stopPropagation()}>
-            <Historial
-              tarea={tareaHistorial}
-              onCerrar={() => {
-                setModalHistorial(false);
-                setTareaHistorial(null);
-              }}
-            />
-          </div>
-        </div>
-      )}
 
       {modalGrupo && (
   <div className="modal">
     <div className="modal-contenido">
       <Grupo
         grupo={tareaGrupo?.grupo ?? []}
+        tareaId={tareaGrupo?._id}
         onGuardarGrupo={guardarGrupo}
         onDescartar={() => {
           setModalGrupo(false);

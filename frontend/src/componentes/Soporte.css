@@ -446,7 +446,21 @@
   background-color: transparent;
   color: #666666;
 }
+.boton-marcado-icono {
+  background-color: transparent;
+}
 
+.boton-marcado-icono.no {
+  color: #bac0ca; /* gris */
+}
+
+.boton-marcado-icono.si {
+  color: #e39595; /* rojo */
+}
+
+.boton-marcado-icono.si svg {
+  fill: currentColor; /* bandera rellena cuando está marcado */
+}
 .boton-editar-icono {
   background-color: transparent;
   color: #16866d;

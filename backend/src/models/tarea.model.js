@@ -181,9 +181,20 @@ const tareaSchema = new mongoose.Schema(
       default: null,
     },
 
-    ordenTecnico: {
+        ordenTecnico: {
       type: Number,
       default: null,
+    },
+
+    marcado: {
+      type: Boolean,
+      default: false,
+    },
+
+    creador: {
+      type: String,
+      default: "",
+      trim: true,
     },
   },
   {

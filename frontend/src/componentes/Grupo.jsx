@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { Search, Check, Minus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Check, Minus, X } from "lucide-react";
 import "./Grupo.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
-function Grupo({ grupo = [], onGuardarGrupo, onDescartar  }) {
+function Grupo({ grupo = [], tareaId, onGuardarGrupo, onDescartar }) {
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [ip, setIp] = useState("");
@@ -12,6 +12,59 @@ function Grupo({ grupo = [], onGuardarGrupo, onDescartar  }) {
 
   const [buscandoCliente, setBuscandoCliente] = useState(false);
   const [error, setError] = useState("");
+
+    // --------------------------------------------------
+  // SINCRONIZAR CHULOS EN VIVO (SSE)
+  // --------------------------------------------------
+
+  useEffect(() => {
+    if (!tareaId) return;
+
+    const eventos = new EventSource(`${API_URL}/api/eventos`);
+    let temporizador = null;
+
+    const sincronizar = async () => {
+      try {
+        const respuesta = await fetch(`${API_URL}/api/tareas/${tareaId}`);
+
+        if (!respuesta.ok) return;
+
+        const tarea = await respuesta.json();
+
+        const servidor = new Map(
+          (tarea.grupo || []).map((cliente) => [
+            String(cliente._id),
+            cliente.realizado === true,
+          ]),
+        );
+
+        setListaGrupo((actual) =>
+          actual.map((cliente) =>
+            cliente._id && servidor.has(String(cliente._id))
+              ? { ...cliente, realizado: servidor.get(String(cliente._id)) }
+              : cliente,
+          ),
+        );
+      } catch (error) {
+        console.error("No se pudo sincronizar el grupo:", error);
+      }
+    };
+
+    const recargar = () => {
+      clearTimeout(temporizador);
+      temporizador = setTimeout(sincronizar, 300);
+    };
+
+    eventos.addEventListener("tareas", recargar);
+
+    // Al abrir, sincroniza una vez por si la lista estaba desactualizada
+    sincronizar();
+
+    return () => {
+      clearTimeout(temporizador);
+      eventos.close();
+    };
+  }, [tareaId]);
 
   // --------------------------------------------------
   // VALIDACIONES
@@ -124,15 +177,63 @@ function Grupo({ grupo = [], onGuardarGrupo, onDescartar  }) {
   // ACTUALIZAR GRUPO CLIENTE
   // --------------------------------------------------
 
-  const alternarRealizado = (indice) => {
-  setListaGrupo((actual) =>
-    actual.map((cliente, posicion) =>
-      posicion === indice
-        ? { ...cliente, realizado: !cliente.realizado }
-        : cliente,
-    ),
-  );
-};
+    // --------------------------------------------------
+  // CHULO / GUION (se guarda de inmediato)
+  // --------------------------------------------------
+
+  const alternarRealizado = async (indice) => {
+    const cliente = listaGrupo[indice];
+
+    if (!cliente) return;
+
+    const nuevoValor = !cliente.realizado;
+
+    // Se muestra el cambio al instante
+    setListaGrupo((actual) =>
+      actual.map((item, posicion) =>
+        posicion === indice ? { ...item, realizado: nuevoValor } : item,
+      ),
+    );
+
+    // Cliente nuevo (aún sin guardar) o sin tarea: solo cambia en pantalla
+    if (!tareaId || !cliente._id) return;
+
+    try {
+      const respuesta = await fetch(
+        `${API_URL}/api/tareas/${tareaId}/grupo/${cliente._id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ realizado: nuevoValor }),
+        },
+      );
+
+      if (!respuesta.ok) {
+        throw new Error("No se pudo actualizar el cliente");
+      }
+    } catch (error) {
+      console.error(error);
+
+      // Si falló, se devuelve al valor anterior
+      setListaGrupo((actual) =>
+        actual.map((item) =>
+          item._id === cliente._id ? { ...item, realizado: !nuevoValor } : item,
+        ),
+      );
+
+      setError("No se pudo actualizar el cliente");
+    }
+  };
+
+  // --------------------------------------------------
+  // ELIMINAR CLIENTE (se aplica al pulsar Guardar)
+  // --------------------------------------------------
+
+  const eliminarCliente = (indice) => {
+    setListaGrupo((actual) =>
+      actual.filter((_, posicion) => posicion !== indice),
+    );
+  };
 
   // --------------------------------------------------
   // COPIAR IP
@@ -252,21 +353,32 @@ function Grupo({ grupo = [], onGuardarGrupo, onDescartar  }) {
                 <span className="grupo-sin-dato"></span>
               )}
 
-              {/* ELIMINAR */}
-              {/* REALIZADO */}
-                <button
-                  type="button"
-                  className={`grupo-estado ${cliente.realizado ? "si" : "no"}`}
-                  onClick={() => alternarRealizado(indice)}
-                  title={cliente.realizado ? "Marcar como pendiente" : "Marcar como realizado"}
-                  aria-label={cliente.realizado ? "Marcar como pendiente" : "Marcar como realizado"}
-                >
-                  {cliente.realizado ? (
-                    <Check size={20} strokeWidth={3} />
-                  ) : (
-                    <Minus size={20} strokeWidth={3} />
-                  )}
-                </button>
+              {/* REALIZADO (inmediato) */}
+              <button
+                type="button"
+                className={`grupo-estado ${cliente.realizado ? "si" : "no"}`}
+                onClick={() => alternarRealizado(indice)}
+                title={cliente.realizado ? "Marcar como pendiente" : "Marcar como realizado"}
+                aria-label={cliente.realizado ? "Marcar como pendiente" : "Marcar como realizado"}
+              >
+                {cliente.realizado ? (
+                  <Check size={20} strokeWidth={3} />
+                ) : (
+                  <Minus size={20} strokeWidth={3} />
+                )}
+              </button>
+
+              {/* ELIMINAR (al guardar) */}
+              <button
+                type="button"
+                className="grupo-eliminar"
+                onClick={() => eliminarCliente(indice)}
+                title="Eliminar cliente"
+                aria-label="Eliminar cliente"
+              >
+                <X size={18} />
+              </button>
+              
             </div>
           ))
         )}
