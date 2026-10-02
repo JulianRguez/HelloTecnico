@@ -35,6 +35,8 @@ const ZONAS = [
   "Liborina",
 ];
 
+const ESTADOS_EDITABLES = ["Pendiente", "Pospuesto"];
+
 function convertirFechaLocal(fecha) {
   if (!fecha) return "";
 
@@ -61,11 +63,14 @@ function obtenerFechaHoraActual() {
   return `${dia}/${mes}/${año} ${horas}:${minutos}`;
 }
 
+
+
 function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
   const [tareaEncontrada, setTareaEncontrada] = useState(null);
 
   const tareaActiva = tareaEncontrada || tarea;
   const editar = Boolean(tareaActiva);
+  const bloqueado = editar && !ESTADOS_EDITABLES.includes(tareaActiva?.estado);
 
   const [formulario, setFormulario] = useState({
     doc: "",
@@ -305,7 +310,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
 
   const guardar = async (e) => {
     e.preventDefault();
-
+    if (bloqueado) return;
     setError("");
 
     const solicitudValida = validarFechaFormulario(formulario.solicitud);
@@ -329,11 +334,34 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
         );
 
         if (respuestaCliente.ok) {
-          setError(
-            "Este cliente ya existe. Puede buscarlo en el listado y editarlo o usar otro nombre.",
-          );
-          return;
-        }
+  setFormulario((actual) => ({
+    ...actual,
+    cliente: actual.cliente,
+    estado: "Pendiente",
+    accion: "",
+    direccion: "",
+    zona: "",
+    telefono: "",
+    telefono2: "",
+    ip: "",
+    ip2: "",
+    instalacion: "",
+    plan: "",
+    solicitud: "",
+    vence: "",
+    debe: false,
+    valor: 0,
+    detalle: "",
+    tecnico: "",
+    grupo: [],
+  }));
+
+  setError(
+    "Este cliente ya existe. Puede buscarlo en el listado y editarlo o usar otro nombre.",
+  );
+
+  return;
+}
 
         if (respuestaCliente.status !== 404) {
           setError("No se pudo comprobar si el cliente ya existe.");
@@ -531,8 +559,13 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
     setError("");
   };
 
+  const mensajeError = bloqueado
+  ? "No puede modificar información de una tarea Finalizada"
+  : error;
+
   return (
     <>
+
       <form className="formulario" onSubmit={guardar}>
         <div className="formulario-header">
           <h1 className="tittle">
@@ -540,7 +573,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
           </h1>
 
           <div className="formulario-botones">
-            <button type="submit" disabled={guardando}>
+            <button type="submit" disabled={guardando || bloqueado}>
               {guardando ? "Guardando..." : editar ? "Guardar" : "Crear"}
             </button>
 
@@ -550,8 +583,8 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
           </div>
         </div>
 
-        {error && <div className="formulario-error">{error}</div>}
-
+        {mensajeError && <div className="formulario-error">{mensajeError}</div>}
+        <fieldset disabled={bloqueado} className="formulario-bloqueable">
         <div className="formulario-grid">
           <div className="campo">
             <label>DOC</label>
@@ -852,6 +885,8 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
             />
           </div>
         </div>
+        </fieldset>
+
       </form>
 
       {modalGrupo && (

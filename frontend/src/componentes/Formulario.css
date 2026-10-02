@@ -236,3 +236,9 @@
 .campo-grupo:disabled:hover {
   background: #bfd8f2;
 }
+.formulario-bloqueable {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}

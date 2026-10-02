@@ -10,6 +10,12 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const ESTADOS = ["Pendiente", "Realizado", "Cancelado", "Pospuesto", "Cerrado"];
 
+// Estados en los que la tarea todavía se puede modificar
+const ESTADOS_ABIERTOS = ["Pendiente", "Pospuesto"];
+
+// Estados que se pueden elegir en el desplegable (Cerrado ya no se usa)
+const ESTADOS_CAMBIABLES = ["Pendiente", "Realizado", "Cancelado", "Pospuesto"];
+
 const ACCIONES = [
   "Instalacion",
   "Traslado",
@@ -286,7 +292,34 @@ function Soporte() {
     return resultado;
   }, [tareas, estadosSeleccionados, busqueda]);
 
-  const cambiarEstado = async (tarea, nuevoEstado) => {
+      const eliminarTarea = async (tarea) => {
+      try {
+        const respuesta = await fetch(`${API_URL}/api/tareas/${tarea._id}`, {
+          method: "DELETE",
+        });
+
+        const datos = await respuesta.json();
+
+        if (!respuesta.ok) {
+          throw new Error(datos.mensaje || "No se pudo eliminar la tarea");
+        }
+
+        const quitar = (actuales) =>
+          actuales.filter((item) => item._id !== tarea._id);
+
+        setTareas(quitar);
+        setTodasLasTareas(quitar);
+      } catch (error) {
+        console.error(error);
+        setMensaje("No se pudo eliminar la tarea");
+      }
+      };
+
+    const cambiarEstado = async (tarea, nuevoEstado) => {
+    if (nuevoEstado === "Eliminar") {
+      await eliminarTarea(tarea);
+      return;
+    }
     try {
       const respuesta = await fetch(`${API_URL}/api/tareas/${tarea._id}`, {
         method: "PUT",
@@ -934,7 +967,7 @@ const alternarMarcado = async (tarea) => {
               <th>Instalación</th>
               <th>Detalle</th>
               <th>DOC</th>
-              <th>Creador</th>
+              <th>Autor</th>
             </tr>
           </thead>
 
@@ -945,6 +978,8 @@ const alternarMarcado = async (tarea) => {
                 .filter(Boolean);
 
               const colorEstado = obtenerColorEstado(tarea.zona, tarea.estado);
+
+              const estadoAbierto = ESTADOS_ABIERTOS.includes(tarea.estado);
 
               const colorAccion = obtenerColorAccion(tarea.zona, tarea.accion);
 
@@ -1007,20 +1042,22 @@ const alternarMarcado = async (tarea) => {
 
                   <td>
                     <select
-                      className="boton-estado"
-                      style={{
-                        backgroundColor: colorEstado,
-                        color: "#000000",
-                      }}
-                      value={tarea.estado}
-                      onChange={(e) => cambiarEstado(tarea, e.target.value)}
-                    >
-                      {ESTADOS.map((estado) => (
-                        <option key={estado} value={estado}>
-                          {estado}
-                        </option>
-                      ))}
-                    </select>
+                        className="boton-estado"
+                        style={{
+                          backgroundColor: colorEstado,
+                          color: "#000000",
+                        }}
+                        value={tarea.estado}
+                        onChange={(e) => cambiarEstado(tarea, e.target.value)}
+                      >
+                        {(estadoAbierto ? ESTADOS_CAMBIABLES : [tarea.estado]).map((estado) => (
+                          <option key={estado} value={estado}>
+                            {estado}
+                          </option>
+                        ))}
+
+                        <option value="Eliminar">Eliminar</option>
+                      </select>
                   </td>
 
                   <td>
@@ -1033,7 +1070,8 @@ const alternarMarcado = async (tarea) => {
                       value={tarea.accion}
                       onChange={(e) => cambiarAccion(tarea, e.target.value)}
                       disabled={
-                        Array.isArray(tarea.grupo) && tarea.grupo.length > 0
+                        !estadoAbierto ||
+                        (Array.isArray(tarea.grupo) && tarea.grupo.length > 0)
                       }
                     >
                       {ACCIONES.map((accion) => (
@@ -1178,6 +1216,7 @@ const alternarMarcado = async (tarea) => {
                           : ""
                       }`}
                       value={tarea.instalacion}
+                      disabled={!estadoAbierto}
                       onChange={(e) =>
                         cambiarInstalacion(tarea, e.target.value)
                       }

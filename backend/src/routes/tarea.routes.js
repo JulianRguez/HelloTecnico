@@ -186,6 +186,22 @@ router.put("/:id", async (req, res) => {
     delete cuerpo.creador;
     delete cuerpo.marcado;
 
+        /*
+      Tareas Realizadas / Canceladas (o Cerradas antiguas):
+      solo se permite cambiar "debe".
+    */
+    if (!["Pendiente", "Pospuesto"].includes(tareaActual.estado)) {
+      const intentaCambiarOtrosCampos = Object.keys(cuerpo).some(
+        (campo) => campo !== "debe"
+      );
+
+      if (intentaCambiarOtrosCampos) {
+        return res.status(400).json({
+          mensaje: "No puede modificar información de una tarea Finalizada",
+        });
+      }
+    }
+
     /*
       ============================================================
       GRUPO: conservar "realizado" del servidor
@@ -670,7 +686,20 @@ router.delete("/:id", async (req, res) => {
         mensaje: "tarea no existe"
       });
     }
-    notificarCambio("eliminada", id); 
+
+    // Si tenía técnico, se cierran los huecos en su lista
+    if (tarea.tecnico && tarea.ordenTecnico != null) {
+      await Tarea.updateMany(
+        {
+          tecnico: tarea.tecnico,
+          ordenTecnico: { $gt: tarea.ordenTecnico }
+        },
+        { $inc: { ordenTecnico: -1 } }
+      );
+    }
+
+    notificarCambio("eliminada", id);
+
     res.json({
       mensaje: "Tarea eliminada correctamente",
       tarea
