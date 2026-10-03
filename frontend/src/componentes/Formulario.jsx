@@ -636,6 +636,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
               name="ip"
               value={formulario.ip}
               onChange={cambiarCampo}
+              required={formulario.accion === "Revision"}
               pattern="^(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}$"
               title="Ingrese una dirección IPv4 válida. Ejemplo: 192.168.1.10"
               disabled={editar && tieneGrupo}

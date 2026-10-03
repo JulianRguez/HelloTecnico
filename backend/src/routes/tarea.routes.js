@@ -5,6 +5,8 @@ import { notificarCambio } from "./eventos.routes.js";
 import Tarea from "../models/tarea.model.js";
 import Usuario from "../models/usuario.model.js";
 
+
+
 function parseCSV(csv) {
   const filas = [];
   let fila = [];
@@ -58,6 +60,54 @@ function parseCSV(csv) {
 }
 
 const router = Router();
+
+/*
+  ============================================================
+  REVISIONES: IP OBLIGATORIA Y UNA SOLA PENDIENTE POR SECTOR
+  Dos IP son del mismo sector si comparten los 3 primeros octetos.
+  Ejemplo: 10.70.10.4 y 10.70.10.85 sí; 10.70.11.4 no.
+  ============================================================
+*/
+
+const MENSAJE_IP_REVISION =
+  "La IP del router es obligatoria para una Revisión";
+
+const mensajeSector = (cliente) =>
+  `Ya hay una revisión pendiente en ese mismo sector (${cliente}). Debe agruparla.`;
+
+const prefijoSector = (ip) => {
+  const coincidencia = String(ip ?? "")
+    .trim()
+    .match(/^(\d{1,3}\.\d{1,3}\.\d{1,3})\.\d{1,3}$/);
+
+  return coincidencia ? coincidencia[1] : null;
+};
+
+/*
+  Busca una Revision Pendiente o Pospuesta cuyo IP (o el de alguno
+  de sus clientes agrupados) tenga los mismos 3 primeros octetos.
+*/
+const buscarRevisionDelSector = async (ips, excluirId = null) => {
+  const prefijos = [...new Set(ips.map(prefijoSector).filter(Boolean))];
+
+  if (prefijos.length === 0) return null;
+
+  const patrones = prefijos.map(
+    (prefijo) => new RegExp(`^${prefijo.replace(/\./g, "\\.")}\\.`)
+  );
+
+  const filtro = {
+    accion: "Revision",
+    estado: { $in: ["Pendiente", "Pospuesto"] },
+    $or: [{ ip: { $in: patrones } }, { "grupo.ip": { $in: patrones } }],
+  };
+
+  if (excluirId) {
+    filtro._id = { $ne: excluirId };
+  }
+
+  return Tarea.findOne(filtro).select("cliente");
+};
 
 /*
   CREAR TAREA
@@ -147,6 +197,24 @@ router.post("/", async (req, res) => {
       cuerpo.ordenTecnico = null;
     }
 
+    // REVISIÓN: IP obligatoria y una sola pendiente por sector
+    if (cuerpo.accion === "Revision") {
+      if (!cuerpo.ip) {
+        return res.status(400).json({ mensaje: MENSAJE_IP_REVISION });
+      }
+
+      const ips = [
+        cuerpo.ip,
+        ...(Array.isArray(cuerpo.grupo) ? cuerpo.grupo : []).map((c) => c.ip),
+      ];
+
+      const existente = await buscarRevisionDelSector(ips);
+
+      if (existente) {
+        return res.status(409).json({ mensaje: mensajeSector(existente.cliente) });
+      }
+    }
+
     const tarea = await Tarea.create(cuerpo);
      notificarCambio("creada", tarea._id); 
     res.status(201).json(tarea);
@@ -230,6 +298,38 @@ router.put("/:id", async (req, res) => {
               : cliente.realizado === true,
         };
       });
+    }
+
+        // REVISIÓN: solo se valida si cambia la acción o la IP
+    const accionFinal = cuerpo.accion ?? tareaActual.accion;
+
+    const cambiaAccion =
+      cuerpo.accion !== undefined && cuerpo.accion !== tareaActual.accion;
+
+    const enviaIp = Object.prototype.hasOwnProperty.call(cuerpo, "ip");
+
+    const cambiaIp =
+      enviaIp && (cuerpo.ip || null) !== (tareaActual.ip || null);
+
+    if (accionFinal === "Revision" && (cambiaAccion || cambiaIp)) {
+      const ipFinal = enviaIp ? cuerpo.ip : tareaActual.ip;
+
+      if (!ipFinal) {
+        return res.status(400).json({ mensaje: MENSAJE_IP_REVISION });
+      }
+
+      const clientesGrupo = Array.isArray(cuerpo.grupo)
+        ? cuerpo.grupo
+        : tareaActual.grupo || [];
+
+      const existente = await buscarRevisionDelSector(
+        [ipFinal, ...clientesGrupo.map((c) => c.ip)],
+        id
+      );
+
+      if (existente) {
+        return res.status(409).json({ mensaje: mensajeSector(existente.cliente) });
+      }
     }
 
     /*
@@ -1279,6 +1379,24 @@ router.patch("/:id/nueva", async (req, res) => {
       return res.status(400).json({
         mensaje: "Solo se puede crear una nueva tarea desde una tarea Realizada o Cancelada"
       });
+    }
+
+        if (accion === "Revision") {
+      if (!tareaActual.ip) {
+        return res.status(400).json({
+          mensaje:
+            "El cliente no tiene IP del router registrada, no se puede crear una Revisión",
+        });
+      }
+
+      const existente = await buscarRevisionDelSector(
+        [tareaActual.ip, ...(tareaActual.grupo || []).map((c) => c.ip)],
+        id
+      );
+
+      if (existente) {
+        return res.status(409).json({ mensaje: mensajeSector(existente.cliente) });
+      }
     }
 
     const tarea = await Tarea.findByIdAndUpdate(
