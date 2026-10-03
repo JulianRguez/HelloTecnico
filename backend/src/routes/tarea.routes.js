@@ -1236,4 +1236,81 @@ router.patch("/:id/marcado", async (req, res) => {
   }
 });
 
+/*
+  NUEVA TAREA SOBRE UN CLIENTE EXISTENTE
+  PATCH /api/tareas/:id/nueva
+  body: { accion, solicitud, vence }
+*/
+router.patch("/:id/nueva", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { accion, solicitud, vence } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        mensaje: "El _id de la tarea no es válido"
+      });
+    }
+
+    if (!Tarea.schema.path("accion").enumValues.includes(accion)) {
+      return res.status(400).json({
+        mensaje: "La acción no es válida"
+      });
+    }
+
+    const fechaSolicitud = new Date(solicitud);
+    const fechaVence = new Date(vence);
+
+    if (isNaN(fechaSolicitud) || isNaN(fechaVence)) {
+      return res.status(400).json({
+        mensaje: "Las fechas no son válidas"
+      });
+    }
+
+    const tareaActual = await Tarea.findById(id);
+
+    if (!tareaActual) {
+      return res.status(404).json({
+        mensaje: "tarea no existe"
+      });
+    }
+
+    if (!["Realizado", "Cancelado"].includes(tareaActual.estado)) {
+      return res.status(400).json({
+        mensaje: "Solo se puede crear una nueva tarea desde una tarea Realizada o Cancelada"
+      });
+    }
+
+    const tarea = await Tarea.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          accion,
+          estado: "Pendiente",
+          solicitud: fechaSolicitud,
+          vence: fechaVence,
+          tecnico: null,
+          ordenTecnico: null
+        },
+        $push: {
+          historial: "🔹🔹Nuevo Registro🔹🔹"
+        }
+      },
+      {
+        new: true,
+        runValidators: true
+      }
+    ).populate("tecnico", "nombre perfil");
+
+    notificarCambio("nueva", id);
+
+    res.json(tarea);
+  } catch (error) {
+    res.status(400).json({
+      mensaje: "No se pudo crear la nueva tarea",
+      error: error.message
+    });
+  }
+});
+
 export default router;

@@ -69,9 +69,9 @@
   margin-bottom: 16px;
   padding: 10px 14px;
   border-radius: 8px;
-  background: #fef3f2;
-  border: 1px solid #fecdca;
-  color: #b42318;
+  background: #f2f2fe;
+  border: 1px solid #cacffe;
+  color: #1822b4;
 }
 
 /* =========================
@@ -89,13 +89,13 @@
   border: 1px solid #d0d5dd;
   border-radius: 8px;
   padding: 9px 16px;
-  background: #ffffff;
-  color: #172033;
+  background: #2563eb;
+  color: #ffffff;
   cursor: pointer;
 }
 
 .formulario-botones button:hover {
-  background: #f8f9fc;
+   background: #4379ee !important;
 }
 
 .formulario-botones button[type="submit"] {

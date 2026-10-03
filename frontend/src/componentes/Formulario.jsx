@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import "./Formulario.css";
 import Grupo from "./Grupo";
+import { calcularVence } from "../utils/fecha";
+import NuevaTarea from "./NuevaTarea";
 const API_URL = import.meta.env.VITE_API_URL || "";
 
 const ESTADOS = ["Pendiente", "Realizado", "Cancelado", "Pospuesto", "Cerrado"];
@@ -37,31 +39,8 @@ const ZONAS = [
 
 const ESTADOS_EDITABLES = ["Pendiente", "Pospuesto"];
 
-function convertirFechaLocal(fecha) {
-  if (!fecha) return "";
 
-  const d = new Date(fecha);
 
-  const año = d.getFullYear();
-  const mes = String(d.getMonth() + 1).padStart(2, "0");
-  const dia = String(d.getDate()).padStart(2, "0");
-  const horas = String(d.getHours()).padStart(2, "0");
-  const minutos = String(d.getMinutes()).padStart(2, "0");
-
-  return `${dia}/${mes}/${año} ${horas}:${minutos}`;
-}
-
-function obtenerFechaHoraActual() {
-  const ahora = new Date();
-
-  const dia = String(ahora.getDate()).padStart(2, "0");
-  const mes = String(ahora.getMonth() + 1).padStart(2, "0");
-  const año = ahora.getFullYear();
-  const horas = String(ahora.getHours()).padStart(2, "0");
-  const minutos = String(ahora.getMinutes()).padStart(2, "0");
-
-  return `${dia}/${mes}/${año} ${horas}:${minutos}`;
-}
 
 
 
@@ -70,6 +49,8 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
 
   const tareaActiva = tareaEncontrada || tarea;
   const editar = Boolean(tareaActiva);
+  const finalizada =
+  editar && ["Realizado", "Cancelado"].includes(tareaActiva?.estado);
   const bloqueado = editar && !ESTADOS_EDITABLES.includes(tareaActiva?.estado);
 
   const [formulario, setFormulario] = useState({
@@ -85,8 +66,6 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
     ip2: "",
     instalacion: "",
     plan: "",
-    solicitud: "",
-    vence: "",
     debe: false,
     valor: 0,
     detalle: "",
@@ -98,6 +77,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
   const [error, setError] = useState("");
   const [buscandoCliente, setBuscandoCliente] = useState(false);
   const [modalGrupo, setModalGrupo] = useState(false);
+  const [modalNueva, setModalNueva] = useState(false);
 
   const textoGrupo = (formulario.grupo ?? [])
     .map((cliente) => cliente.nombre?.split(" ")[0])
@@ -126,8 +106,6 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
         ip2: tarea.ip2 ?? "",
         instalacion: tarea.instalacion ?? "",
         plan: tarea.plan ?? "",
-        solicitud: convertirFechaLocal(tarea.solicitud),
-        vence: convertirFechaLocal(tarea.vence),
         debe: tarea.debe ?? false,
         valor: tarea.valor ?? 0,
         detalle: tarea.detalle ?? "",
@@ -148,8 +126,6 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
         ip2: "",
         instalacion: "",
         plan: "",
-        solicitud: obtenerFechaHoraActual(),
-        vence: "",
         debe: false,
         valor: 0,
         detalle: "",
@@ -159,24 +135,40 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
     }
   }, [tarea]);
 
-  const cambiarCampo = (e) => {
-    const { name, value } = e.target;
+ const cambiarCampo = (e) => {
+  const { name, value } = e.target;
 
-    if (name === "solicitud" || name === "vence") {
-      const valorFormateado = formatearEntradaFecha(value);
+  setFormulario((actual) => ({
+    ...actual,
+    [name]: value,
+  }));
+};
 
-      setFormulario((actual) => ({
-        ...actual,
-        [name]: valorFormateado,
-      }));
+  const cargarNuevaTarea = (t) => {
+    setTareaEncontrada(t);
 
-      return;
-    }
+    setFormulario({
+      doc: t.doc ?? "",
+      cliente: t.cliente ?? "",
+      estado: t.estado ?? "Pendiente",
+      accion: t.accion ?? "",
+      direccion: t.direccion ?? "",
+      zona: t.zona ?? "",
+      telefono: t.telefono ?? "",
+      telefono2: t.telefono2 ?? "",
+      ip: t.ip ?? "",
+      ip2: t.ip2 ?? "",
+      instalacion: t.instalacion ?? "",
+      plan: t.plan ?? "",
+      debe: t.debe ?? false,
+      valor: t.valor ?? 0,
+      detalle: t.detalle ?? "",
+      tecnico: t.tecnico?._id ?? t.tecnico ?? "",
+      grupo: t.grupo ?? [],
+    });
 
-    setFormulario((actual) => ({
-      ...actual,
-      [name]: value,
-    }));
+    setError("");
+    setModalNueva(false);
   };
 
   const buscarCliente = async () => {
@@ -219,8 +211,6 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
           ip2: tareaEncontradaMongo.ip2 ?? "",
           instalacion: tareaEncontradaMongo.instalacion ?? "",
           plan: tareaEncontradaMongo.plan ?? "",
-          solicitud: convertirFechaLocal(tareaEncontradaMongo.solicitud),
-          vence: convertirFechaLocal(tareaEncontradaMongo.vence),
           debe: tareaEncontradaMongo.debe ?? false,
           valor: tareaEncontradaMongo.valor ?? 0,
           detalle: tareaEncontradaMongo.detalle ?? "",
@@ -265,8 +255,6 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
           ip2: datosExcel.ip2 ?? "",
           instalacion: "",
           plan: datosExcel.plan ?? "",
-          solicitud: obtenerFechaHoraActual(),
-          vence: "",
           debe: false,
           valor: 0,
           detalle: "",
@@ -296,35 +284,18 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
     }
   };
 
-  function convertirFechaParaBackend(valor) {
-    const fecha = validarFechaFormulario(valor);
 
-    if (!fecha) {
-      return null;
-    }
 
-    const { dia, mes, año, horas, minutos } = fecha;
-
-    return new Date(año, mes - 1, dia, horas, minutos).toISOString();
-  }
-
-  const guardar = async (e) => {
+    const guardar = async (e) => {
     e.preventDefault();
-    if (bloqueado) return;
+
     setError("");
 
-    const solicitudValida = validarFechaFormulario(formulario.solicitud);
-    const venceValida = validarFechaFormulario(formulario.vence);
+    // Una tarea Realizada o Cancelada no se puede modificar
+    const tareaFinalizada =
+      editar && ["Realizado", "Cancelado"].includes(tareaActiva?.estado);
 
-    if (!solicitudValida) {
-      setError("La fecha de Solicitud no es válida");
-      return;
-    }
-
-    if (!venceValida) {
-      setError("La fecha de Vence no es válida");
-      return;
-    }
+    if (tareaFinalizada) return;
 
     // Comprobar cliente existente solamente al crear
     if (!editar) {
@@ -334,34 +305,32 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
         );
 
         if (respuestaCliente.ok) {
-  setFormulario((actual) => ({
-    ...actual,
-    cliente: actual.cliente,
-    estado: "Pendiente",
-    accion: "",
-    direccion: "",
-    zona: "",
-    telefono: "",
-    telefono2: "",
-    ip: "",
-    ip2: "",
-    instalacion: "",
-    plan: "",
-    solicitud: "",
-    vence: "",
-    debe: false,
-    valor: 0,
-    detalle: "",
-    tecnico: "",
-    grupo: [],
-  }));
+          // Limpia todo el formulario excepto el nombre del cliente
+          setFormulario({
+            doc: "",
+            cliente: formulario.cliente,
+            estado: "Pendiente",
+            accion: "",
+            direccion: "",
+            zona: "",
+            telefono: "",
+            telefono2: "",
+            ip: "",
+            ip2: "",
+            instalacion: "",
+            plan: "",
+            debe: false,
+            valor: 0,
+            detalle: "",
+            tecnico: "",
+            grupo: [],
+          });
 
-  setError(
-    "Este cliente ya existe. Puede buscarlo en el listado y editarlo o usar otro nombre.",
-  );
-
-  return;
-}
+          setError(
+            "Este cliente ya existe. Puede buscarlo en el listado y editarlo o usar otro nombre.",
+          );
+          return;
+        }
 
         if (respuestaCliente.status !== 404) {
           setError("No se pudo comprobar si el cliente ya existe.");
@@ -406,6 +375,25 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
         return;
       }
 
+      // Fechas: solo al crear. Al editar no se envían y quedan como están.
+      let fechas = {};
+
+      if (!editar) {
+        const vence = await calcularVence(formulario.accion);
+
+        if (!vence) {
+          setError(
+            "Seleccione una acción válida para calcular la fecha de vencimiento.",
+          );
+          return;
+        }
+
+        fechas = {
+          solicitud: new Date().toISOString(),
+          vence: vence.toISOString(),
+        };
+      }
+
       const cuerpo = {
         doc: formulario.doc === "" ? undefined : Number(formulario.doc),
         cliente: clienteGuardar,
@@ -419,8 +407,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
         ip2: formulario.ip2 || null,
         instalacion: formulario.instalacion,
         plan: formulario.plan,
-        solicitud: convertirFechaParaBackend(formulario.solicitud),
-        vence: convertirFechaParaBackend(formulario.vence),
+        ...fechas,
         debe: formulario.debe,
         valor: Number(formulario.valor) || 0,
         detalle: formulario.detalle,
@@ -467,100 +454,11 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
       setGuardando(false);
     }
   };
-  function formatearEntradaFecha(valor) {
-    const numeros = valor.replace(/\D/g, "").slice(0, 12);
+ 
 
-    let resultado = "";
-
-    if (numeros.length > 0) {
-      resultado += numeros.slice(0, 2);
-    }
-
-    if (numeros.length >= 3) {
-      resultado += "/" + numeros.slice(2, 4);
-    }
-
-    if (numeros.length >= 5) {
-      resultado += "/" + numeros.slice(4, 8);
-    }
-
-    if (numeros.length >= 9) {
-      resultado += " " + numeros.slice(8, 10);
-    }
-
-    if (numeros.length >= 11) {
-      resultado += ":" + numeros.slice(10, 12);
-    }
-
-    return resultado;
-  }
-
-  function validarFechaFormulario(valor) {
-    const coincidencia = valor.match(
-      /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})$/,
-    );
-
-    if (!coincidencia) {
-      return null;
-    }
-
-    const dia = Number(coincidencia[1]);
-    const mes = Number(coincidencia[2]);
-    const año = Number(coincidencia[3]);
-    const horas = Number(coincidencia[4]);
-    const minutos = Number(coincidencia[5]);
-
-    if (año !== 2026 && año !== 2027) {
-      return null;
-    }
-
-    if (mes < 1 || mes > 12) {
-      return null;
-    }
-
-    if (horas < 0 || horas > 23) {
-      return null;
-    }
-
-    if (minutos < 0 || minutos > 59) {
-      return null;
-    }
-
-    const diasDelMes = new Date(año, mes, 0).getDate();
-
-    if (dia < 1 || dia > diasDelMes) {
-      return null;
-    }
-
-    return {
-      dia,
-      mes,
-      año,
-      horas,
-      minutos,
-    };
-  }
-
-  const validarCampoFecha = (e) => {
-    const { name, value } = e.target;
-
-    if (name !== "solicitud" && name !== "vence") {
-      return;
-    }
-
-    if (!validarFechaFormulario(value)) {
-      setError(
-        `${name === "solicitud" ? "Solicitud" : "Vence"}: fecha no válida`,
-      );
-
-      return;
-    }
-
-    setError("");
-  };
 
   const mensajeError = bloqueado
-  ? "No puede modificar información de una tarea Finalizada"
+  ? "No puede editar una tarea Finalizada, haga clic en “Nueva tarea” para agendar un nuevo procedimiento."
   : error;
 
   return (
@@ -573,9 +471,15 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
           </h1>
 
           <div className="formulario-botones">
-            <button type="submit" disabled={guardando || bloqueado}>
-              {guardando ? "Guardando..." : editar ? "Guardar" : "Crear"}
-            </button>
+            {finalizada ? (
+              <button type="button" onClick={() => setModalNueva(true)}>
+                Nueva tarea
+              </button>
+            ) : (
+              <button type="submit" disabled={guardando}>
+                {guardando ? "Guardando..." : editar ? "Guardar" : "Crear"}
+              </button>
+            )}
 
             <button type="button" onClick={onCerrar} disabled={guardando}>
               Salir
@@ -781,39 +685,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
               maxLength={30}
               disabled={editar && tieneGrupo}
             />
-          </div>
-
-          <div className="campo">
-            <label>Solicitud</label>
-            <input
-              type="text"
-              name="solicitud"
-              value={formulario.solicitud}
-              onChange={cambiarCampo}
-              onBlur={validarCampoFecha}
-              placeholder="DD/MM/AAAA HH:MM"
-              inputMode="numeric"
-              maxLength={16}
-              required
-              disabled={editar}
-            />
-          </div>
-
-          <div className="campo">
-            <label>Vence</label>
-            <input
-              type="text"
-              name="vence"
-              value={formulario.vence}
-              onChange={cambiarCampo}
-              onBlur={validarCampoFecha}
-              placeholder="DD/MM/AAAA HH:MM"
-              inputMode="numeric"
-              maxLength={16}
-              required
-              disabled={editar}
-            />
-          </div>
+          </div>          
 
           <div className="campo">
             <label>Debe</label>
@@ -908,6 +780,18 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
           </div>
         </div>
       )}
+
+      {modalNueva && (
+  <div className="modal-grupo">
+    <div className="modal-grupo-contenido">
+      <NuevaTarea
+        tarea={tareaActiva}
+        onCerrar={() => setModalNueva(false)}
+        onCreada={cargarNuevaTarea}
+      />
+    </div>
+  </div>
+)}
     </>
   );
 }
