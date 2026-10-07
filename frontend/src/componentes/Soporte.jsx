@@ -188,7 +188,7 @@ function Soporte() {
   const [tareaGrupo, setTareaGrupo] = useState(null);
   const [clienteTooltip, setClienteTooltip] = useState(null);
   // Cierra la sesión tras 5 minutos sin interacción
-  useInactividad(5, () => {
+  useInactividad(30, () => {
     sessionStorage.removeItem("usuario");
     navigate("/", { replace: true });
   });

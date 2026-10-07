@@ -195,6 +195,14 @@ function Tecnico() {
                   {tareaSiguiente.cliente}
                 </div>
 
+                {/* DETALLE */}
+                {tareaSiguiente.detalle && (
+                  <div className="tecnico-fila tecnico-detalle">
+                    <FileText size={17} />
+                    <span>{tareaSiguiente.detalle}</span>
+                  </div>
+                )}
+
                 {/* CLIENTES DEL GRUPO */}
                 {tareaSiguiente.grupo.map((cliente, indice) => (
   <div

@@ -90,6 +90,10 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
   const puedeAgregarRevision = nombreValido && formulario.accion === "Revision";
   const tieneGrupo =
     Array.isArray(formulario.grupo) && formulario.grupo.length > 0;
+    const teniaGrupoOriginal =
+  editar &&
+  Array.isArray(tareaActiva?.grupo) &&
+  tareaActiva.grupo.length > 0;
 
   useEffect(() => {
     if (tarea) {
@@ -347,27 +351,33 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
 
     try {
       let clienteGuardar = (formulario.cliente || "").toUpperCase();
-      let grupoGuardar = formulario.grupo ?? [];
+let grupoGuardar = formulario.grupo ?? [];
 
-      const tieneGrupoGuardar =
-        Array.isArray(grupoGuardar) && grupoGuardar.length > 0;
+const tieneGrupoGuardar =
+  Array.isArray(grupoGuardar) && grupoGuardar.length > 0;
 
-      const clienteGrupo =
-        `${formulario.accion}, ${formulario.zona}, ${formulario.direccion}`.toUpperCase();
+// Solo cuando pasa de cliente individual a grupo
+const pasaAGrupo = tieneGrupoGuardar && !teniaGrupoOriginal;
 
-      if (tieneGrupoGuardar && formulario.cliente !== clienteGrupo) {
-        grupoGuardar = [
-          {
-            nombre: formulario.cliente,
-            telefono: formulario.telefono,
-            ip: formulario.ip,
-            realizado: false,
-          },
-          ...grupoGuardar,
-        ];
+if (pasaAGrupo) {
+  clienteGuardar =
+    `${formulario.accion}, ${formulario.zona}, ${formulario.direccion}`.toUpperCase();
 
-        clienteGuardar = clienteGrupo;
-      }
+  grupoGuardar = [
+    {
+      nombre: formulario.cliente,
+      telefono: formulario.telefono,
+      ip: formulario.ip,
+      realizado: false,
+    },
+    ...grupoGuardar,
+  ];
+}
+
+if (teniaGrupoOriginal && !clienteGuardar.startsWith("REVISION")) {
+  setError('El nombre debe empezar por "REVISION".');
+  return;
+}
 
       // Validación DOC obligatorio para nuevas Instalaciones
       if (!editar && formulario.accion === "Instalacion" && !formulario.doc) {
@@ -396,6 +406,7 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
 
       const cuerpo = {
         doc: formulario.doc === "" ? undefined : Number(formulario.doc),
+        cliente: clienteGuardar,
         cliente: clienteGuardar,
         estado: formulario.estado,
         accion: formulario.accion,
@@ -511,14 +522,19 @@ function Formulario({ tarea, tecnicos = [], onGuardado, onCerrar }) {
                 type="text"
                 name="cliente"
                 value={formulario.cliente}
-                onChange={(e) =>
-                  setFormulario({
-                    ...formulario,
-                    cliente: e.target.value.toUpperCase(),
-                  })
-                }
+                onChange={(e) => {
+                const valor = e.target.value.toUpperCase();
+
+                // Tarea con grupo: el nombre siempre debe empezar por REVISION
+                if (teniaGrupoOriginal && !valor.startsWith("REVISION")) return;
+
+                setFormulario({
+                  ...formulario,
+                  cliente: valor,
+                });
+              }}
                 required
-                readOnly={editar}
+                readOnly={editar && !teniaGrupoOriginal}
                 minLength={8}
                 maxLength={40}
               />
